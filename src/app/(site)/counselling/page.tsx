@@ -21,7 +21,7 @@ export default function CounsellingPage() {
         <Container className="relative py-16 lg:py-24">
           {/* The tagline lockup belongs here more than anywhere: "a place to
               heal" is exactly what this page is about. */}
-          <LogoLockup withTagline className="mb-10" markClassName="h-14 w-14" />
+          <LogoLockup withTagline className="mb-10 h-24" />
           <SectionHeading
             align="left"
             eyebrow="Counselling"

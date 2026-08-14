@@ -3,7 +3,6 @@ import Link from "next/link";
 import { ArrowRight, CalendarPlus, Heart as HeartIcon } from "lucide-react";
 import { about } from "@/content/about";
 import { Botanical, LeafDivider } from "@/components/brand/Botanical";
-import { BuildingIllustration } from "@/components/brand/BuildingIllustration";
 import { EventCard } from "@/components/site/EventCard";
 import { ButtonLink } from "@/components/ui/Button";
 import { Container, Heart, Section, SectionHeading } from "@/components/ui/Section";
@@ -62,7 +61,15 @@ export default async function HomePage() {
 
           <div className="relative">
             <div className="overflow-hidden rounded-[var(--radius-card)] border border-tan/30 shadow-[var(--shadow-lift)]">
-              <BuildingIllustration />
+              <Image
+                src="/building.jpg"
+                alt="The Room Within building on Chamberlain Avenue — a two-storey shingled building with shopfronts for the cafe, offices and daycare, window boxes, and an exterior stair to the upper suites"
+                width={1256}
+                height={984}
+                priority
+                sizes="(max-width: 1024px) 92vw, 560px"
+                className="h-auto w-full"
+              />
             </div>
           </div>
         </Container>

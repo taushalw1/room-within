@@ -16,7 +16,7 @@ export default function LoginPage() {
       <Container>
         <div className="mx-auto max-w-md">
           <div className="flex justify-center">
-            <LogoBadge className="h-32 w-32" />
+            <LogoBadge className="h-32" />
           </div>
 
           <h1 className="mt-8 text-center text-3xl">Sign in</h1>

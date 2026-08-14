@@ -22,7 +22,7 @@ export function SiteHeader() {
           className="transition-opacity hover:opacity-75"
           aria-label={`${site.name} — home`}
         >
-          <LogoLockup />
+          <LogoLockup decorative priority className="h-11" />
         </Link>
 
         {/* Desktop nav */}

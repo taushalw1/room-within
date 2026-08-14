@@ -107,7 +107,7 @@ export default function AboutPage() {
       {/* ================= Pull quote ================= */}
       <Section tint="cream" className="py-16">
         <Container>
-          <LogoBadge className="mx-auto h-24 w-24" />
+          <LogoBadge className="mx-auto h-24" />
           <blockquote className="script mx-auto mt-8 max-w-3xl text-center text-3xl leading-snug sm:text-4xl">
             &ldquo;{about.pullQuote}&rdquo;
           </blockquote>
