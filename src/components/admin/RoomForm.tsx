@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState, useEffect } from "react";
-import { updateRoom } from "@/app/(admin)/admin/settings/actions";
+import { createRoom, updateRoom } from "@/app/(admin)/admin/settings/actions";
 import {
   CheckField,
   Feedback,
@@ -15,31 +15,33 @@ import type { RoomRow } from "@/lib/data/types";
 const money = (cents: number | null) =>
   cents === null || cents === undefined ? "" : (cents / 100).toFixed(2);
 
+/** One form for both adding a room and editing an existing one. */
 export function RoomForm({
   room,
   onSaved,
   onCancel,
 }: {
-  room: RoomRow;
+  room?: RoomRow;
   onSaved?: () => void;
   onCancel?: () => void;
 }) {
-  const [result, action] = useActionState(updateRoom, null);
+  const editing = Boolean(room);
+  const [result, action] = useActionState(editing ? updateRoom : createRoom, null);
 
   useEffect(() => {
-    if (result?.ok) onSaved?.();
-  }, [result, onSaved]);
+    if (result?.ok && editing) onSaved?.();
+  }, [result, editing, onSaved]);
 
   return (
     <form action={action} className="space-y-5">
-      <input type="hidden" name="roomId" value={room.id} />
+      {room && <input type="hidden" name="roomId" value={room.id} />}
 
       <div className="grid gap-4 sm:grid-cols-2">
         <Field label="Room name">
           <input
             name="name"
             required
-            defaultValue={room.name}
+            defaultValue={room?.name}
             className={inputClass}
           />
         </Field>
@@ -48,7 +50,7 @@ export function RoomForm({
             name="capacity"
             type="number"
             min="0"
-            defaultValue={room.capacity ?? ""}
+            defaultValue={room?.capacity ?? ""}
             className={inputClass}
           />
         </Field>
@@ -58,7 +60,7 @@ export function RoomForm({
         <textarea
           name="description"
           rows={2}
-          defaultValue={room.description ?? ""}
+          defaultValue={room?.description ?? ""}
           className={`${inputClass} resize-y`}
         />
       </Field>
@@ -72,7 +74,7 @@ export function RoomForm({
               step="0.01"
               min="0"
               required
-              defaultValue={money(room.hourly_rate_cents)}
+              defaultValue={room ? money(room.hourly_rate_cents) : ""}
               className={inputClass}
             />
           </Field>
@@ -82,7 +84,7 @@ export function RoomForm({
               type="number"
               step="0.01"
               min="0"
-              defaultValue={money(room.half_day_rate_cents)}
+              defaultValue={room ? money(room.half_day_rate_cents) : ""}
               className={inputClass}
             />
           </Field>
@@ -92,7 +94,7 @@ export function RoomForm({
               type="number"
               step="0.01"
               min="0"
-              defaultValue={money(room.full_day_rate_cents)}
+              defaultValue={room ? money(room.full_day_rate_cents) : ""}
               className={inputClass}
             />
           </Field>
@@ -103,7 +105,7 @@ export function RoomForm({
               step="0.25"
               min="0.25"
               required
-              defaultValue={room.min_hours}
+              defaultValue={room?.min_hours ?? 1}
               className={inputClass}
             />
           </Field>
@@ -119,19 +121,19 @@ export function RoomForm({
         <CheckField
           name="requiresApproval"
           label="You confirm bookings for this room before anyone pays"
-          defaultChecked={room.requires_approval}
+          defaultChecked={room ? room.requires_approval : true}
           hint="Leave unticked to let people book and pay straight away."
         />
         <CheckField
           name="isBookable"
           label="Show this room on the website"
-          defaultChecked={room.is_bookable}
+          defaultChecked={room ? room.is_bookable : true}
           hint="Untick to take it off Our Spaces and the booking page."
         />
       </div>
 
       <div className="flex flex-wrap items-center gap-3">
-        <SubmitButton>Save rates</SubmitButton>
+        <SubmitButton>{editing ? "Save rates" : "Add room"}</SubmitButton>
         {onCancel && (
           <Button type="button" variant="ghost" onClick={onCancel}>
             Cancel

@@ -1,5 +1,9 @@
+import { AddPanel } from "@/components/admin/AddPanel";
 import { RatesForm } from "@/components/admin/RatesForm";
+import { RoomForm } from "@/components/admin/RoomForm";
 import { RoomRateRow } from "@/components/admin/RoomRateRow";
+import { UnitForm } from "@/components/admin/UnitForm";
+import { UnitRateRow } from "@/components/admin/UnitRateRow";
 import { Card, CardHeader, Table, Td, Th } from "@/components/ui/Table";
 import { getRooms } from "@/lib/data/public";
 import { getRates, getUnits } from "@/lib/data/admin";
@@ -47,27 +51,41 @@ export default async function SettingsPage() {
         </Table>
       </Card>
 
+      <AddPanel
+        label="Add a room"
+        description="A space people book by the hour or the day."
+      >
+        <RoomForm />
+      </AddPanel>
+
       <Card>
-        <CardHeader title="Monthly rents" />
+        <CardHeader
+          title="Monthly rents"
+          description="Offices and suites let by the month. This is the asking rent — each tenancy can be agreed at its own figure."
+        />
         <Table>
           <thead>
             <tr>
               <Th>Unit</Th>
               <Th>Type</Th>
               <Th align="right">Monthly</Th>
+              <Th align="right" />
             </tr>
           </thead>
           <tbody>
             {units.map((u) => (
-              <tr key={u.id}>
-                <Td className="font-medium">{u.name}</Td>
-                <Td>{u.kind}</Td>
-                <Td align="right">{money(u.monthly_rate_cents)}</Td>
-              </tr>
+              <UnitRateRow key={u.id} unit={u} />
             ))}
           </tbody>
         </Table>
       </Card>
+
+      <AddPanel
+        label="Add a unit"
+        description="A part of the building let on a monthly lease, rather than booked by the hour."
+      >
+        <UnitForm />
+      </AddPanel>
 
       <Card>
         <CardHeader
