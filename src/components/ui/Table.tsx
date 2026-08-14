@@ -143,7 +143,15 @@ export function Badge({
   return (
     <span
       className={cn(
-        "eyebrow inline-block rounded-full px-2.5 py-1 !text-[0.58rem]",
+        "eyebrow inline-flex items-center justify-center rounded-full px-2.5 py-1 !text-[0.58rem]",
+        // `self-center` matters: as a direct child of a flex row the badge
+        // would otherwise stretch to the full row height, leaving the text
+        // stranded near the top of a too-tall oval.
+        "self-center",
+        // The eyebrow style sets a 1.4 line-height for running labels. Inside
+        // a pill that adds dead space below the caps, pushing them upward, so
+        // the line box is tightened to the glyphs here.
+        "!leading-none",
         tones[tone],
       )}
     >

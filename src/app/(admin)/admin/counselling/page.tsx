@@ -1,5 +1,8 @@
 import { CalendarClock, Inbox, Lock, ShieldCheck } from "lucide-react";
+import { AddPanel } from "@/components/admin/AddPanel";
 import { Stat } from "@/components/admin/Stat";
+import { TaskForm } from "@/components/admin/TaskForm";
+import { TaskItem } from "@/components/admin/TaskItem";
 import {
   Badge,
   Card,
@@ -190,55 +193,37 @@ export default async function CounsellingPage() {
       </Card>
 
       {/* ---------- Tasks ---------- */}
-      <Card id="tasks">
-        <CardHeader
-          title="Your to-do list"
-          description="Private to you. Ask Claude to add something and it'll appear here."
-        />
-        <ul className="divide-y divide-tan/15">
-          {tasks.length === 0 ? (
-            <li className="px-5 py-12 text-center text-sm text-ink-faint">
-              Nothing on the list.
-            </li>
-          ) : (
-            tasks.map((t) => {
-              const overdue =
-                t.status !== "done" &&
-                t.due_date &&
-                new Date(t.due_date) < new Date(new Date().toDateString());
-              return (
-                <li key={t.id} className="flex items-start gap-3 px-5 py-3.5">
-                  <span
-                    className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${
-                      t.status === "done"
-                        ? "bg-linen"
-                        : t.status === "doing"
-                          ? "bg-tan"
-                          : "bg-sage"
-                    }`}
-                  />
-                  <div className="min-w-0 flex-1">
-                    <p
-                      className={`text-sm ${t.status === "done" ? "text-ink-faint line-through" : ""}`}
-                    >
-                      {t.title}
-                    </p>
-                    {t.notes && (
-                      <p className="text-xs text-ink-soft">{t.notes}</p>
-                    )}
-                  </div>
-                  <Badge tone="neutral">{t.area}</Badge>
-                  {t.due_date && (
-                    <Badge tone={overdue ? "bad" : "neutral"}>
-                      {dateShort(t.due_date)}
-                    </Badge>
-                  )}
-                </li>
-              );
-            })
-          )}
-        </ul>
-      </Card>
+      <div id="tasks" className="space-y-6">
+        <AddPanel
+          label="Add a task"
+          description="Anything you need to remember — it's private to you."
+        >
+          <TaskForm />
+        </AddPanel>
+
+        <Card>
+          <CardHeader
+            title="Your to-do list"
+            description="Tick things off as you go. Done tasks stay at the bottom."
+          />
+          <ul className="divide-y divide-tan/15">
+            {tasks.length === 0 ? (
+              <li className="px-5 py-12 text-center text-sm text-ink-faint">
+                Nothing on the list.
+              </li>
+            ) : (
+              // Open work first, then anything already ticked off.
+              [...tasks]
+                .sort((a, b) => {
+                  const done = (t: typeof a) => (t.status === "done" ? 1 : 0);
+                  if (done(a) !== done(b)) return done(a) - done(b);
+                  return (a.due_date ?? "9999").localeCompare(b.due_date ?? "9999");
+                })
+                .map((t) => <TaskItem key={t.id} task={t} />)
+            )}
+          </ul>
+        </Card>
+      </div>
 
       {/* ---------- Past sessions ---------- */}
       <Card>

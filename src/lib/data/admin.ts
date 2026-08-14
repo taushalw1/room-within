@@ -160,6 +160,25 @@ export async function getCounsellingRequests(): Promise<CounsellingRequestRow[]>
   return (data as CounsellingRequestRow[]) ?? [];
 }
 
+export type Rates = { counselling_hourly_cents: number; gst_rate: number };
+
+const DEFAULT_RATES: Rates = { counselling_hourly_cents: 14000, gst_rate: 0.05 };
+
+/** Configurable rates, from the `settings` table. */
+export async function getRates(): Promise<Rates> {
+  if (isDemoMode) return DEFAULT_RATES;
+  const supabase = await getServerSupabase();
+  if (!supabase) return DEFAULT_RATES;
+
+  const { data } = await supabase
+    .from("settings")
+    .select("value")
+    .eq("key", "rates")
+    .maybeSingle();
+
+  return { ...DEFAULT_RATES, ...((data?.value as Partial<Rates>) ?? {}) };
+}
+
 /** Month-by-month income vs expenses for the last 12 months. */
 export async function getMonthlyTotals() {
   if (isDemoMode) return sampleMonthlyTotals();

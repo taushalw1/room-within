@@ -5,7 +5,10 @@
       "name": "Room Within",
       "runtimeExecutable": "npm",
       "runtimeArgs": ["run", "dev"],
-      "port": 3000,
+      // 4300 rather than the usual 3000: something else on this machine holds
+      // 3000, which forced a different random port on every restart and kept
+      // invalidating the preview link. autoPort stays on as a fallback.
+      "port": 4300,
       "autoPort": true
     }
   ]

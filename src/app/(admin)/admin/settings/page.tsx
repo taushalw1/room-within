@@ -1,11 +1,17 @@
+import { RatesForm } from "@/components/admin/RatesForm";
+import { RoomRateRow } from "@/components/admin/RoomRateRow";
 import { Card, CardHeader, Table, Td, Th } from "@/components/ui/Table";
 import { getRooms } from "@/lib/data/public";
-import { getUnits } from "@/lib/data/admin";
+import { getRates, getUnits } from "@/lib/data/admin";
 import { money } from "@/lib/format";
 import { site } from "@/lib/site";
 
 export default async function SettingsPage() {
-  const [rooms, units] = await Promise.all([getRooms(), getUnits()]);
+  const [rooms, units, rates] = await Promise.all([
+    getRooms(),
+    getUnits(),
+    getRates(),
+  ]);
 
   return (
     <div className="space-y-8">
@@ -18,7 +24,10 @@ export default async function SettingsPage() {
       </header>
 
       <Card>
-        <CardHeader title="Room rates" />
+        <CardHeader
+          title="Room rates"
+          description="Changing a rate here updates the website and every new booking straight away. Bookings already made keep the price they were quoted."
+        />
         <Table>
           <thead>
             <tr>
@@ -27,21 +36,12 @@ export default async function SettingsPage() {
               <Th align="right">Half day</Th>
               <Th align="right">Full day</Th>
               <Th align="right">Minimum</Th>
+              <Th align="right" />
             </tr>
           </thead>
           <tbody>
             {rooms.map((r) => (
-              <tr key={r.id}>
-                <Td className="font-medium">{r.name}</Td>
-                <Td align="right">{money(r.hourly_rate_cents)}</Td>
-                <Td align="right">
-                  {r.half_day_rate_cents ? money(r.half_day_rate_cents) : "—"}
-                </Td>
-                <Td align="right">
-                  {r.full_day_rate_cents ? money(r.full_day_rate_cents) : "—"}
-                </Td>
-                <Td align="right">{r.min_hours}h</Td>
-              </tr>
+              <RoomRateRow key={r.id} room={r} />
             ))}
           </tbody>
         </Table>
@@ -70,20 +70,12 @@ export default async function SettingsPage() {
       </Card>
 
       <Card>
-        <CardHeader title="Counselling" />
+        <CardHeader
+          title="Counselling &amp; tax"
+          description="The hourly rate shown on the counselling page, and the GST added to room bookings."
+        />
         <div className="px-5 py-5">
-          <dl className="grid gap-4 sm:grid-cols-2">
-            <div>
-              <dt className="eyebrow !text-[0.6rem] text-bark">Hourly rate</dt>
-              <dd className="mt-1 font-display text-2xl text-olive-deep">
-                {money(14000)}
-              </dd>
-            </div>
-            <div>
-              <dt className="eyebrow !text-[0.6rem] text-bark">GST</dt>
-              <dd className="mt-1 font-display text-2xl text-olive-deep">5%</dd>
-            </div>
-          </dl>
+          <RatesForm rates={rates} />
         </div>
       </Card>
 
