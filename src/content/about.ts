@@ -5,14 +5,18 @@
  * replace it with her own words. Ask Claude: "update my about page bio", read
  * it out, and it will rewrite this file.
  *
- * PHOTO: save the photo as `public/tausha.jpg`, then set `photo` below to
- * "/tausha.jpg". Until then the page shows a botanical panel instead.
+ * PHOTO: replace `public/tausha.jpg` with a new file to change it. If the new
+ * photo frames her differently, adjust `photoPosition` below — the pages crop
+ * a tall portrait out of a wide photo, so that setting decides which part
+ * survives the crop.
  */
 export const about = {
   name: "Tausha",
   role: "Counsellor & Founder",
-  photo: null as string | null,
+  photo: "/tausha.jpg" as string | null,
   photoAlt: "Tausha, counsellor and founder of Room Within Community",
+  /** CSS object-position: keeps her face in frame when the photo is cropped. */
+  photoPosition: "57% 38%",
 
   /** One line under her name. */
   tagline: "Building a place where families don't have to choose.",

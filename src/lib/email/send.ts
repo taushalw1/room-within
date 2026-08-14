@@ -72,7 +72,7 @@ function shell(heading: string, body: string, cta?: { label: string; url: string
         : ""
     }
     <tr><td style="padding:16px 32px 28px;border-top:1px solid #e0d5bd;font-size:12px;color:#6b6659">
-      ${site.name} · ${site.town}<br>
+      ${site.name}<br>${site.address.oneLine}<br>
       <a href="mailto:${site.email}" style="color:#7c2e3e">${site.email}</a>
     </td></tr>
   </table>

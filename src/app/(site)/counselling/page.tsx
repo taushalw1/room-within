@@ -53,7 +53,7 @@ export default function CounsellingPage() {
               {
                 icon: MapPin,
                 title: "Where to come",
-                body: `The Quiet Room at Room Within, on Main Street in ${site.town}. It's a small, softly furnished room away from the busier parts of the building, with its own entrance.`,
+                body: `The Quiet Room at Room Within, ${site.address.oneLine}. It's a small, softly furnished room away from the busier parts of the building, with its own entrance.`,
               },
             ].map(({ icon: Icon, title, body }) => (
               <div key={title}>

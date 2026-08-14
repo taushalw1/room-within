@@ -66,7 +66,7 @@ export function EventForm({
           name="title"
           required
           defaultValue={event?.title}
-          placeholder="Thursday Morning Coffee Group"
+          placeholder="Thursday Morning Drop-In"
           className={inputClass}
         />
       </Field>

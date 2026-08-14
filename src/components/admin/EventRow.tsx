@@ -2,7 +2,7 @@
 
 import { useCallback, useState } from "react";
 import { Pencil } from "lucide-react";
-import { ConfirmDelete } from "@/components/admin/ConfirmDelete";
+import { ConfirmAction } from "@/components/admin/ConfirmAction";
 import { EventForm } from "@/components/admin/EventForm";
 import { EventStatusButtons } from "@/components/admin/EventStatusButtons";
 import { Badge, Td } from "@/components/ui/Table";
@@ -73,10 +73,10 @@ export function EventRow({
                 <Pencil className="h-3.5 w-3.5" aria-hidden />
                 {editing ? "Close" : "Edit"}
               </Button>
-              <ConfirmDelete
+              <ConfirmAction
                 id={event.id}
                 action={deleteEvent}
-                what={`"${event.title}"`}
+                question={`Delete "${event.title}"? This can’t be undone.`}
               />
             </div>
             <EventStatusButtons eventId={event.id} status={event.status} />

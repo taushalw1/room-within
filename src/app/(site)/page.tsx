@@ -1,5 +1,7 @@
+import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, CalendarPlus, Heart as HeartIcon } from "lucide-react";
+import { about } from "@/content/about";
 import { Botanical, LeafDivider } from "@/components/brand/Botanical";
 import { BuildingIllustration } from "@/components/brand/BuildingIllustration";
 import { EventCard } from "@/components/site/EventCard";
@@ -37,7 +39,7 @@ export default async function HomePage() {
             </h1>
 
             <p className="mt-6 max-w-xl text-lg leading-relaxed text-ink-soft">
-              Room Within is a historic building on Main Street in Grassy Lake,
+              Room Within is a historic building on Chamberlain Avenue in Grassy Lake,
               reimagined for families, learning, entrepreneurship and community.
               Book a room, join what&rsquo;s happening, or find a quiet place to
               talk.
@@ -220,11 +222,21 @@ export default async function HomePage() {
         <Container>
           <div className="grid items-center gap-12 lg:grid-cols-[1fr_1.1fr]">
             <div className="relative">
-              <div className="aspect-[4/5] overflow-hidden rounded-[var(--radius-card)] border border-tan/30 bg-sage-pale/50">
-                {/* Tausha's photo goes here — see /about */}
-                <div className="flex h-full w-full items-center justify-center">
-                  <Botanical className="h-64 w-48 opacity-60" />
-                </div>
+              <div className="relative aspect-[4/5] overflow-hidden rounded-[var(--radius-card)] border border-tan/30 bg-sage-pale/50">
+                {about.photo ? (
+                  <Image
+                    src={about.photo}
+                    alt={about.photoAlt}
+                    fill
+                    sizes="(max-width: 1024px) 90vw, 460px"
+                    className="object-cover"
+                    style={{ objectPosition: about.photoPosition }}
+                  />
+                ) : (
+                  <div className="flex h-full w-full items-center justify-center">
+                    <Botanical className="h-64 w-48 opacity-60" />
+                  </div>
+                )}
               </div>
             </div>
 

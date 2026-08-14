@@ -56,9 +56,22 @@ export function SiteFooter() {
                   <span>{site.facebookLabel}</span>
                 </a>
               </li>
-              <li className="flex items-start gap-2.5 text-cream/85">
-                <MapPin className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
-                <span>{site.town}</span>
+              <li>
+                <a
+                  href={site.address.mapsUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-start gap-2.5 text-cream/85 transition-colors hover:text-cream"
+                >
+                  <MapPin className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
+                  <span>
+                    {site.address.street}
+                    <span className="block">
+                      {site.address.locality}, {site.address.region}{" "}
+                      {site.address.postalCode}
+                    </span>
+                  </span>
+                </a>
               </li>
             </ul>
           </div>

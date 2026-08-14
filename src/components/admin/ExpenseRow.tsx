@@ -2,7 +2,7 @@
 
 import { useCallback, useState } from "react";
 import { Pencil } from "lucide-react";
-import { ConfirmDelete } from "@/components/admin/ConfirmDelete";
+import { ConfirmAction } from "@/components/admin/ConfirmAction";
 import { ExpenseForm } from "@/components/admin/ExpenseForm";
 import { Td } from "@/components/ui/Table";
 import { Button } from "@/components/ui/Button";
@@ -41,10 +41,10 @@ export function ExpenseRow({
               <Pencil className="h-3.5 w-3.5" aria-hidden />
               {editing ? "Close" : "Edit"}
             </Button>
-            <ConfirmDelete
+            <ConfirmAction
               id={expense.id}
               action={deleteExpense}
-              what={`this ${moneyExact(expense.amount_cents)} cost`}
+              question={`Delete this ${moneyExact(expense.amount_cents)} cost? This can’t be undone.`}
             />
           </div>
         </Td>

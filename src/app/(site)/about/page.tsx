@@ -30,6 +30,7 @@ export default function AboutPage() {
                   fill
                   sizes="(max-width: 1024px) 90vw, 380px"
                   className="object-cover"
+                  style={{ objectPosition: about.photoPosition }}
                   priority
                 />
               ) : (

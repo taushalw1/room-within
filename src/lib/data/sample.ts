@@ -16,7 +16,7 @@ export const sampleRooms: RoomRow[] = [
     name: "The Gathering Room",
     slug: "gathering-room",
     description:
-      "Our largest space, at the front of the building. Suits classes, coffee groups, workshops, meetings and small celebrations. Tables and stacking chairs included, kitchenette next door.",
+      "Our largest space, at the front of the building. Suits classes, drop-in groups, workshops, meetings and small celebrations. Tables and stacking chairs included, kitchenette next door.",
     capacity: 40,
     hourly_rate_cents: 3500,
     half_day_rate_cents: 12000,
@@ -84,8 +84,8 @@ export const sampleRooms: RoomRow[] = [
 export const sampleEvents: EventRow[] = [
   {
     id: "sample-e1",
-    title: "Thursday Morning Coffee Group",
-    slug: "thursday-coffee",
+    title: "Thursday Morning Drop-In",
+    slug: "thursday-drop-in",
     description:
       "Drop in for a cup and a chat. No sign-up, no cost — just come. Little ones welcome.",
     starts_at: at(3, 9, 30),
@@ -163,7 +163,7 @@ export const sampleEvents: EventRow[] = [
     title: "Parents' Evening — Raising Kids in a Small Town",
     slug: "parents-evening",
     description:
-      "An informal conversation evening hosted by Tausha. Coffee and dessert provided.",
+      "An informal conversation evening hosted by Tausha. Refreshments and dessert provided.",
     starts_at: at(20, 19, 0),
     ends_at: at(20, 21, 0),
     all_day: false,

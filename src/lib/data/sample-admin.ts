@@ -99,7 +99,7 @@ export const sampleTasks: TaskRow[] = [
   { id: "t2", title: "Confirm the birthday tea booking", notes: "Check the room is free for setup the evening before.", due_date: day(1), status: "open", area: "bookings", contact_id: null, created_at: iso(0) },
   { id: "t3", title: "Write intake summary for new client", notes: null, due_date: day(2), status: "doing", area: "counselling", contact_id: "c6", created_at: iso(-2) },
   { id: "t4", title: "Get quote for the roof flashing", notes: "Two quotes minimum before the grant application.", due_date: day(9), status: "open", area: "finance", contact_id: null, created_at: iso(-8) },
-  { id: "t5", title: "Order more coffee for Thursday group", notes: null, due_date: day(-2), status: "done", area: "general", contact_id: null, created_at: iso(-12) },
+  { id: "t5", title: "Order more supplies for the Thursday group", notes: null, due_date: day(-2), status: "done", area: "general", contact_id: null, created_at: iso(-12) },
 ];
 
 export const sampleExpenses: ExpenseRow[] = [

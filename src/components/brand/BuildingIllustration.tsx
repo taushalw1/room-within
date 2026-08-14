@@ -13,7 +13,7 @@ export function BuildingIllustration({ className }: { className?: string }) {
       viewBox="0 0 520 380"
       fill="none"
       role="img"
-      aria-label="Line illustration of the historic 1905 Room Within building on the main street of Grassy Lake"
+      aria-label="Line illustration of the historic 1905 Room Within building on Chamberlain Avenue in Grassy Lake"
       className={cn("h-full w-full", className)}
     >
       <defs>

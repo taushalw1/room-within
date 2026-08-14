@@ -1,8 +1,8 @@
 import { AddPanel } from "@/components/admin/AddPanel";
 import { AddTenantForm } from "@/components/admin/AddTenantForm";
-import { Badge, Card, CardHeader, EmptyRow, Table, Td, Th } from "@/components/ui/Table";
+import { ContactRow } from "@/components/admin/ContactRow";
+import { Card, CardHeader, EmptyRow, Table, Th } from "@/components/ui/Table";
 import { getContacts, getInvoices, getUnits } from "@/lib/data/admin";
-import { dateShort, money } from "@/lib/format";
 
 export default async function ContactsPage() {
   const [contacts, invoices, units] = await Promise.all([
@@ -51,54 +51,22 @@ export default async function ContactsPage() {
               <Th>Relationship</Th>
               <Th>Since</Th>
               <Th align="right">Owing</Th>
+              <Th align="right" />
             </tr>
           </thead>
           <tbody>
             {contacts.length === 0 ? (
-              <EmptyRow colSpan={5}>
-                No one added yet. Ask Claude to add someone.
+              <EmptyRow colSpan={6}>
+                No one added yet. Use the button above.
               </EmptyRow>
             ) : (
-              contacts.map((c) => {
-                const owed = owedByContact.get(c.id) ?? 0;
-                return (
-                  <tr key={c.id}>
-                    <Td>
-                      <span className="font-medium">{c.full_name}</span>
-                      {c.organisation && (
-                        <span className="block text-xs text-ink-faint">
-                          {c.organisation}
-                        </span>
-                      )}
-                    </Td>
-                    <Td className="text-ink-soft">
-                      {c.email && <span className="block text-xs">{c.email}</span>}
-                      {c.phone && <span className="block text-xs">{c.phone}</span>}
-                      {!c.email && !c.phone && "—"}
-                    </Td>
-                    <Td>
-                      <span className="flex flex-wrap gap-1">
-                        {c.tags.length === 0 ? (
-                          <span className="text-ink-faint">—</span>
-                        ) : (
-                          c.tags.map((t) => (
-                            <Badge key={t} tone={t === "tenant" ? "good" : "neutral"}>
-                              {t}
-                            </Badge>
-                          ))
-                        )}
-                      </span>
-                    </Td>
-                    <Td className="text-ink-soft">{dateShort(c.created_at)}</Td>
-                    <Td
-                      align="right"
-                      className={owed > 0 ? "font-semibold text-burgundy" : "text-ink-faint"}
-                    >
-                      {owed > 0 ? money(owed) : "—"}
-                    </Td>
-                  </tr>
-                );
-              })
+              contacts.map((c) => (
+                <ContactRow
+                  key={c.id}
+                  contact={c}
+                  owed={owedByContact.get(c.id) ?? 0}
+                />
+              ))
             )}
           </tbody>
         </Table>

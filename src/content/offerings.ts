@@ -2,9 +2,9 @@ import {
   BedDouble,
   BookOpen,
   Briefcase,
-  Coffee,
   HeartHandshake,
   Scissors,
+  Users,
   type LucideIcon,
 } from "lucide-react";
 
@@ -63,9 +63,9 @@ export const offerings: Offering[] = [
     slug: "gathering",
     title: "Community Gathering Space",
     blurb:
-      "Classes, coffee groups, workshops, mentorship, meetings, and events that strengthen connection and belonging.",
-    icon: Coffee,
-    href: "/book",
+      "Classes, drop-in groups, workshops, mentorship, meetings, and events that strengthen connection and belonging.",
+    icon: Users,
+    href: "/spaces#rooms",
     status: "Year One",
   },
   {

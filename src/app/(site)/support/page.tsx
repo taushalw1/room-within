@@ -34,7 +34,7 @@ const ways = [
   {
     icon: Handshake,
     title: "Volunteering",
-    body: "Painting, cleaning, moving furniture, making coffee, minding children while other people work — all of it counts.",
+    body: "Painting, cleaning, moving furniture, putting the kettle on, minding children while other people work — all of it counts.",
   },
   {
     icon: Wrench,

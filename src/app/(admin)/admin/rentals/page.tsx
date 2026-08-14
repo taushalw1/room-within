@@ -17,10 +17,11 @@ import {
   Th,
 } from "@/components/ui/Table";
 import { cn } from "@/lib/cn";
+import { TenancyRow } from "@/components/admin/TenancyRow";
 import {
+  getAllLeases,
   getContactNameMap,
   getInvoices,
-  getLeases,
   getUnits,
 } from "@/lib/data/admin";
 import { dateShort, money } from "@/lib/format";
@@ -48,12 +49,16 @@ export default async function RentalsPage({
 }) {
   const { filter = "all" } = await searchParams;
 
-  const [invoices, units, leases, contacts] = await Promise.all([
+  const [invoices, units, allLeases, contacts] = await Promise.all([
     getInvoices(),
     getUnits(),
-    getLeases(),
+    getAllLeases(),
     getContactNameMap(),
   ]);
+
+  const leases = allLeases.filter((l) => l.status === "active");
+  const endedLeases = allLeases.filter((l) => l.status === "ended");
+  const unitsById = new Map(units.map((u) => [u.id, u]));
 
   const shown =
     filter === "all" ? invoices : invoices.filter((i) => i.state === filter);
@@ -125,75 +130,63 @@ export default async function RentalsPage({
               <Th>Tenant</Th>
               <Th align="right">Rent</Th>
               <Th align="right">Due</Th>
+              <Th align="right" />
             </tr>
           </thead>
           <tbody>
             {units.length === 0 ? (
-              <EmptyRow colSpan={5}>
+              <EmptyRow colSpan={6}>
                 No units yet. Ask Claude to add one.
               </EmptyRow>
             ) : (
               units.map((u) => {
                 const lease = leaseByUnit.get(u.id);
-                const tenant = lease ? contacts.get(lease.contact_id) : null;
                 return (
-                  <tr key={u.id}>
-                    <Td>
-                      <span className="font-medium">{u.name}</span>
-                      {u.floor && (
-                        <span className="block text-xs text-ink-faint">
-                          {u.floor} floor
-                        </span>
-                      )}
-                    </Td>
-                    <Td>
-                      <Badge>{u.kind}</Badge>
-                    </Td>
-                    <Td>
-                      {tenant ? (
-                        <>
-                          {tenant.full_name}
-                          {tenant.organisation && (
-                            <span className="block text-xs text-ink-faint">
-                              {tenant.organisation}
-                            </span>
-                          )}
-                        </>
-                      ) : (
-                        <span className="text-ink-faint">Vacant</span>
-                      )}
-                    </Td>
-                    <Td align="right">
-                      {money(lease?.rent_cents ?? u.monthly_rate_cents)}
-                      <span className="block text-xs text-ink-faint">
-                        / month
-                      </span>
-                    </Td>
-                    <Td align="right">
-                      {lease ? (
-                        <span className="text-sm">
-                          {lease.due_day}
-                          <span className="text-xs text-ink-faint">
-                            {lease.due_day === 1
-                              ? "st"
-                              : lease.due_day === 2
-                                ? "nd"
-                                : lease.due_day === 3
-                                  ? "rd"
-                                  : "th"}
-                          </span>
-                        </span>
-                      ) : (
-                        <span className="text-ink-faint">—</span>
-                      )}
-                    </Td>
-                  </tr>
+                  <TenancyRow
+                    key={u.id}
+                    unit={u}
+                    lease={lease}
+                    tenant={lease ? contacts.get(lease.contact_id) : undefined}
+                    units={units}
+                  />
                 );
               })
             )}
           </tbody>
         </Table>
       </Card>
+
+      {/* ---------- Past tenancies ---------- */}
+      {endedLeases.length > 0 && (
+        <Card>
+          <CardHeader
+            title="Past tenancies"
+            description="Kept on file so their invoices and payments still make sense."
+          />
+          <Table>
+            <thead>
+              <tr>
+                <Th>Tenant</Th>
+                <Th>Unit</Th>
+                <Th>From</Th>
+                <Th>To</Th>
+                <Th align="right">Rent was</Th>
+              </tr>
+            </thead>
+            <tbody>
+              {endedLeases.map((l) => (
+                <tr key={l.id} className="opacity-70">
+                  <Td>{contacts.get(l.contact_id)?.full_name ?? "—"}</Td>
+                  <Td>{unitsById.get(l.unit_id)?.name ?? "—"}</Td>
+                  <Td>{dateShort(l.start_date)}</Td>
+                  <Td>{l.end_date ? dateShort(l.end_date) : "—"}</Td>
+                  <Td align="right">{money(l.rent_cents)}</Td>
+                </tr>
+              ))}
+            </tbody>
+          </Table>
+        </Card>
+      )}
 
       {/* ---------- Invoices ---------- */}
       <Card>

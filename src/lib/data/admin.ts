@@ -77,6 +77,18 @@ export async function getLeases(): Promise<LeaseRow[]> {
   return (data as LeaseRow[]) ?? [];
 }
 
+/** Every lease including ended ones — for the tenancy history. */
+export async function getAllLeases(): Promise<LeaseRow[]> {
+  if (isDemoMode) return sampleLeases;
+  const supabase = await getServerSupabase();
+  if (!supabase) return [];
+  const { data } = await supabase
+    .from("leases")
+    .select("*")
+    .order("start_date", { ascending: false });
+  return (data as LeaseRow[]) ?? [];
+}
+
 export async function getBookings(): Promise<BookingRow[]> {
   if (isDemoMode) return sampleBookings;
   const supabase = await getServerSupabase();

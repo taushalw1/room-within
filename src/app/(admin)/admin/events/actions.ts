@@ -140,7 +140,7 @@ export async function addEvent(
   if (!supabase) return { ok: false, message: "No database connection." };
 
   // Slugs are unique, so add a suffix rather than failing on a repeat name —
-  // "Thursday Coffee Group" happens every week.
+  // "Thursday Morning Drop-In" happens every week.
   const base = slugify(parsed.values.title) || "event";
   let slug = base;
   const { data: clash } = await supabase

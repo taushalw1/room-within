@@ -13,7 +13,7 @@ insert into public.rooms
    is_bookable, requires_approval, sort_order)
 values
   ('The Gathering Room', 'gathering-room',
-   'Our largest space, at the front of the building. Suits classes, coffee groups, workshops, meetings and small celebrations. Tables and stacking chairs included, kitchenette next door.',
+   'Our largest space, at the front of the building. Suits classes, drop-in groups, workshops, meetings and small celebrations. Tables and stacking chairs included, kitchenette next door.',
    40, 3500, 12000, 20000, 2, 30, true, true, 1),
 
   ('The Maker Space', 'maker-space',

@@ -7,6 +7,19 @@ export const site = {
   shortName: "Room Within",
   tagline: "A place to gather, learn, create, work & belong",
   town: "Grassy Lake, Alberta",
+  /** The building itself. */
+  address: {
+    street: "105 Chamberlain Ave N",
+    locality: "Grassy Lake",
+    region: "AB",
+    postalCode: "T0K 0Z0",
+    /** One line, for the footer and emails. */
+    oneLine: "105 Chamberlain Ave N, Grassy Lake, AB T0K 0Z0",
+    /** Opens the address in whichever map app the visitor uses. */
+    mapsUrl:
+      "https://www.google.com/maps/search/?api=1&query=" +
+      encodeURIComponent("105 Chamberlain Ave N, Grassy Lake, AB T0K 0Z0"),
+  },
   email: "roomwithincommunity@gmail.com",
   facebook: "https://www.facebook.com/",
   facebookLabel: "Room Within Community",
@@ -17,9 +30,16 @@ export const site = {
   },
 } as const;
 
+/**
+ * The top navigation.
+ *
+ * "Book a Room" deliberately isn't here — Our Spaces covers the same ground and
+ * carries a "Check availability" button for each room, so a separate nav item
+ * was sending people to the same place twice. The booking page still exists at
+ * /book; it's just reached from Our Spaces and the home page instead.
+ */
 export const nav = [
   { href: "/spaces", label: "Our Spaces" },
-  { href: "/book", label: "Book a Room" },
   { href: "/calendar", label: "Community Calendar" },
   { href: "/counselling", label: "Counselling" },
   { href: "/about", label: "About" },
