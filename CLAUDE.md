@@ -98,8 +98,11 @@ colour or font that isn't already in the theme.**
 
 ### Content Tausha can change without a developer
 
-- Rooms, rates, events, tenants, invoices, expenses → **the admin screens**.
-  These are the things she changes often; they live in the database.
+- Tenants, events and expenses → **she adds these herself** using the "Add …"
+  panels on `/admin/rentals`, `/admin/events` and `/admin/finance`. If she asks
+  you to add one, point her at the panel rather than doing it for her — then she
+  doesn't need you next time. Do it for her only if she'd rather.
+- Rooms, units and rates → no form yet, so make the database change yourself.
 - Her bio and photo → `src/content/about.ts`
 - The six offerings and the three-year plan → `src/content/offerings.ts`
 - Contact details and navigation → `src/lib/site.ts`

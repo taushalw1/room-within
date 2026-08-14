@@ -112,6 +112,11 @@ export default async function SettingsPage() {
           <h2 className="font-display text-base font-semibold text-olive-deep">
             Things to ask Tyler for
           </h2>
+          <p className="mt-2">
+            You can add tenants, events and costs yourself — look for the
+            &ldquo;Add&rdquo; button on Rentals, Events and Finance. These are
+            the ones that need Tyler:
+          </p>
           <ul className="mt-2 list-disc space-y-1 pl-4">
             <li>Connecting or changing the Stripe account that takes card payments</li>
             <li>Adding or changing passwords and keys</li>

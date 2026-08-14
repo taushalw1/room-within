@@ -1,9 +1,15 @@
+import { AddPanel } from "@/components/admin/AddPanel";
+import { AddTenantForm } from "@/components/admin/AddTenantForm";
 import { Badge, Card, CardHeader, EmptyRow, Table, Td, Th } from "@/components/ui/Table";
-import { getContacts, getInvoices } from "@/lib/data/admin";
+import { getContacts, getInvoices, getUnits } from "@/lib/data/admin";
 import { dateShort, money } from "@/lib/format";
 
 export default async function ContactsPage() {
-  const [contacts, invoices] = await Promise.all([getContacts(), getInvoices()]);
+  const [contacts, invoices, units] = await Promise.all([
+    getContacts(),
+    getInvoices(),
+    getUnits(),
+  ]);
 
   const owedByContact = new Map<string, number>();
   for (const i of invoices) {
@@ -24,6 +30,13 @@ export default async function ContactsPage() {
           clients and donors.
         </p>
       </header>
+
+      <AddPanel
+        label="Add someone"
+        description="Anyone you deal with. Give them a unit as well and they become a tenant."
+      >
+        <AddTenantForm units={units} />
+      </AddPanel>
 
       <Card>
         <CardHeader

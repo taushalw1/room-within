@@ -14,12 +14,13 @@ import {
   sampleTasks,
   sampleUnits,
 } from "./sample-admin";
-import { sampleRooms } from "./sample";
+import { sampleEvents, sampleRooms } from "./sample";
 import type {
   AppointmentRow,
   BookingRow,
   ContactRow,
   CounsellingRequestRow,
+  EventRow,
   ExpenseRow,
   InvoiceRow,
   LeaseRow,
@@ -85,6 +86,22 @@ export async function getBookings(): Promise<BookingRow[]> {
     .select("*")
     .order("starts_at");
   return (data as BookingRow[]) ?? [];
+}
+
+/** Every event including drafts and cancelled ones — admin view. */
+export async function getAdminEvents(): Promise<EventRow[]> {
+  if (isDemoMode) {
+    return [...sampleEvents].sort((a, b) =>
+      b.starts_at.localeCompare(a.starts_at),
+    );
+  }
+  const supabase = await getServerSupabase();
+  if (!supabase) return [];
+  const { data } = await supabase
+    .from("events")
+    .select("*")
+    .order("starts_at", { ascending: false });
+  return (data as EventRow[]) ?? [];
 }
 
 export async function getExpenses(): Promise<ExpenseRow[]> {

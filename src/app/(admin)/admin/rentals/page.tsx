@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { Building2 } from "lucide-react";
+import { AddPanel } from "@/components/admin/AddPanel";
+import { AddTenantForm } from "@/components/admin/AddTenantForm";
 import { Stat } from "@/components/admin/Stat";
 import {
   RecordPaymentForm,
@@ -101,6 +103,13 @@ export default async function RentalsPage({
           icon={Building2}
         />
       </div>
+
+      <AddPanel
+        label="Add a tenant"
+        description="Adds them to your people list, and sets up a lease if they're renting a unit."
+      >
+        <AddTenantForm units={units} />
+      </AddPanel>
 
       {/* ---------- Units ---------- */}
       <Card>

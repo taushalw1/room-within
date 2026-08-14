@@ -60,6 +60,18 @@ calendar, and the pages where people book rooms or ask about counselling.
 
 **Your admin area** — sign in and go to `/admin`. Only you can see this.
 
+Three things you add yourself, without asking Claude at all — look for the
+dashed **Add** button at the top of each page:
+
+- **Rentals → Add a tenant.** Fill in their details, and pick a unit if
+  they're renting one. Leave the unit as "Not renting yet" to just save
+  someone's contact details.
+- **Events → Add an event.** Anything the community should know about, whether
+  it's in your building or not. Leave "put it on the calendar now" unticked to
+  save it as a draft first.
+- **Finance → Record a cost.** Date, who it was paid to, and how much. Leave
+  the GST box empty and it works it out for you.
+
 - **Rentals** — your tenants, what they owe, what's overdue, and the reminder
   emails that go out automatically
 - **Bookings** — room booking requests to approve, and the calendar of what's

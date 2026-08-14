@@ -155,10 +155,12 @@ deleting the row from `calendar_tokens`.
 
 Honest list of what isn't built yet:
 
-- **Creating things from the admin UI.** The admin screens read and act on data
-  (approve a booking, record a payment, write a note) but adding a tenant, unit,
-  event or expense is done by asking Claude, which writes to the database. Worth
-  building proper forms once you know which ones she actually reaches for.
+- **Creating rooms and units from the admin UI.** Tenants, events and expenses
+  all have proper forms now. Rooms and units don't — they change rarely enough
+  that asking Claude (or editing `supabase/seed.sql`) is fine, but they're the
+  obvious next forms if she finds herself wanting them.
+- **Editing and deleting** what's already been created. Events can be published,
+  hidden and cancelled; nothing can yet be edited after the fact or removed.
 - **Generating monthly rent invoices.** The schema, the reminder job and the
   overdue tracking are all there, but something has to create each month's rent
   invoices from the active leases — a monthly cron beside the reminders one.

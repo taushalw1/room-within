@@ -1,4 +1,6 @@
 import { HandHeart, PiggyBank, Receipt, TrendingUp } from "lucide-react";
+import { AddExpenseForm } from "@/components/admin/AddExpenseForm";
+import { AddPanel } from "@/components/admin/AddPanel";
 import { MonthlyChart } from "@/components/admin/MonthlyChart";
 import { Stat } from "@/components/admin/Stat";
 import {
@@ -180,10 +182,17 @@ export default async function FinancePage() {
         </Card>
       </div>
 
+      <AddPanel
+        label="Record a cost"
+        description="Anything the building or the business has spent money on."
+      >
+        <AddExpenseForm existingCategories={categories.map(([c]) => c)} />
+      </AddPanel>
+
       <Card>
         <CardHeader
           title="Recent costs"
-          description="Ask Claude to add a cost — just tell it what you spent and on what."
+          description="Everything recorded, most recent first."
         />
         <Table>
           <thead>

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   CalendarDays,
+  CalendarPlus,
   ExternalLink,
   Home,
   KeyRound,
@@ -19,6 +20,7 @@ const links = [
   { href: "/admin", label: "Dashboard", icon: Home, exact: true },
   { href: "/admin/rentals", label: "Rentals", icon: KeyRound },
   { href: "/admin/bookings", label: "Bookings", icon: CalendarDays },
+  { href: "/admin/events", label: "Events", icon: CalendarPlus },
   { href: "/admin/finance", label: "Finance", icon: Wallet },
   { href: "/admin/counselling", label: "Counselling", icon: NotebookPen },
   { href: "/admin/contacts", label: "People", icon: Users },
