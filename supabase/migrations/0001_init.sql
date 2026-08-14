@@ -202,7 +202,16 @@ create table if not exists public.reminder_log (
 );
 
 -- An invoice is "overdue" if it's been sent, isn't fully paid, and is past due.
-create or replace view public.invoice_balances as
+--
+-- SECURITY_INVOKER IS LOAD-BEARING. Without it a view runs with its owner's
+-- permissions — `postgres` here — which bypasses row-level security on
+-- `invoices` and `payments` entirely. A signed-in tenant could then read every
+-- tenant's invoices through this view, even though the tables themselves are
+-- properly locked down. With it, the view runs as the caller and the policies
+-- below apply as intended.
+create or replace view public.invoice_balances
+with (security_invoker = true)
+as
 select
   i.*,
   coalesce(p.paid_cents, 0)                                  as paid_cents,
