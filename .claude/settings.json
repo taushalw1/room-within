@@ -1,0 +1,46 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "permissions": {
+    "allow": [
+      "Bash(npm run dev)",
+      "Bash(npm run build)",
+      "Bash(npm run lint)",
+      "Bash(npm run typecheck)",
+      "Bash(npm install)",
+      "Bash(npm install:*)",
+      "Bash(npx next build)",
+      "Bash(git status)",
+      "Bash(git status:*)",
+      "Bash(git diff)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push)",
+      "Bash(git push:*)",
+      "Bash(git pull)",
+      "Bash(git pull:*)",
+      "Bash(git checkout:*)",
+      "Bash(git branch:*)",
+      "Read(//C/Users/**)",
+      "Edit(//C/Users/tyler/Room Within/**)",
+      "Write(//C/Users/tyler/Room Within/**)",
+      "mcp__Claude_Browser__preview_start",
+      "mcp__Claude_Browser__preview_logs",
+      "mcp__Claude_Browser__preview_stop",
+      "mcp__Claude_Browser__navigate",
+      "mcp__Claude_Browser__read_page",
+      "mcp__Claude_Browser__computer",
+      "mcp__Claude_Browser__resize_window",
+      "mcp__Claude_Browser__read_console_messages"
+    ],
+    "deny": [
+      "Read(./.env)",
+      "Read(./.env.local)",
+      "Read(./.env.*.local)",
+      "Bash(rm -rf:*)",
+      "Bash(git push --force:*)",
+      "Bash(git reset --hard:*)"
+    ]
+  }
+}
