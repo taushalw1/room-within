@@ -6,6 +6,8 @@ export const site = {
   name: "Room Within Community",
   shortName: "Room Within",
   tagline: "A place to gather, learn, create, work & belong",
+  /** The line that sits under the logo in the horizontal lockup. */
+  logoTagline: "A place to heal. A space to belong.",
   town: "Grassy Lake, Alberta",
   /** The building itself. */
   address: {

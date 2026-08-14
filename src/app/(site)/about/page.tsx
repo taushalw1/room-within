@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import { Botanical, LeafDivider } from "@/components/brand/Botanical";
+import { LogoBadge } from "@/components/brand/Logo";
 import { ButtonLink } from "@/components/ui/Button";
 import { Container, Section, SectionHeading } from "@/components/ui/Section";
 import { about } from "@/content/about";
@@ -106,7 +107,8 @@ export default function AboutPage() {
       {/* ================= Pull quote ================= */}
       <Section tint="cream" className="py-16">
         <Container>
-          <blockquote className="script mx-auto max-w-3xl text-center text-3xl leading-snug sm:text-4xl">
+          <LogoBadge className="mx-auto h-24 w-24" />
+          <blockquote className="script mx-auto mt-8 max-w-3xl text-center text-3xl leading-snug sm:text-4xl">
             &ldquo;{about.pullQuote}&rdquo;
           </blockquote>
         </Container>

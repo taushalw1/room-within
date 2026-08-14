@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Clock, Lock, MapPin, Phone } from "lucide-react";
 import { Botanical } from "@/components/brand/Botanical";
+import { LogoLockup } from "@/components/brand/Logo";
 import { ButtonLink } from "@/components/ui/Button";
 import { Container, Section, SectionHeading } from "@/components/ui/Section";
 import { about } from "@/content/about";
@@ -18,6 +19,9 @@ export default function CounsellingPage() {
       <section className="relative overflow-hidden bg-parchment">
         <Botanical className="absolute -right-14 -top-6 hidden h-[360px] w-[260px] opacity-55 lg:block" />
         <Container className="relative py-16 lg:py-24">
+          {/* The tagline lockup belongs here more than anywhere: "a place to
+              heal" is exactly what this page is about. */}
+          <LogoLockup withTagline className="mb-10" markClassName="h-14 w-14" />
           <SectionHeading
             align="left"
             eyebrow="Counselling"

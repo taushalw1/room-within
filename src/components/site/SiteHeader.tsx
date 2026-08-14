@@ -4,10 +4,10 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { Menu, X } from "lucide-react";
-import { LogoInline } from "@/components/brand/Logo";
+import { LogoLockup } from "@/components/brand/Logo";
 import { ButtonLink } from "@/components/ui/Button";
 import { Container } from "@/components/ui/Section";
-import { nav } from "@/lib/site";
+import { nav, site } from "@/lib/site";
 import { cn } from "@/lib/cn";
 
 export function SiteHeader() {
@@ -19,10 +19,10 @@ export function SiteHeader() {
       <Container className="flex h-[70px] items-center justify-between gap-4">
         <Link
           href="/"
-          className="text-olive-deep transition-opacity hover:opacity-75"
-          aria-label={`${"Room Within Community"} — home`}
+          className="transition-opacity hover:opacity-75"
+          aria-label={`${site.name} — home`}
         >
-          <LogoInline />
+          <LogoLockup />
         </Link>
 
         {/* Desktop nav */}

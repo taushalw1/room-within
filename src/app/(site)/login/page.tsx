@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import { LoginForm } from "@/components/site/LoginForm";
 import { Container, Section } from "@/components/ui/Section";
-import { Logo } from "@/components/brand/Logo";
+import { LogoBadge } from "@/components/brand/Logo";
 import { isDemoMode } from "@/lib/demo";
 
 export const metadata: Metadata = {
@@ -15,8 +15,8 @@ export default function LoginPage() {
     <Section tint="cream">
       <Container>
         <div className="mx-auto max-w-md">
-          <div className="flex justify-center text-olive-deep">
-            <Logo />
+          <div className="flex justify-center">
+            <LogoBadge className="h-32 w-32" />
           </div>
 
           <h1 className="mt-8 text-center text-3xl">Sign in</h1>

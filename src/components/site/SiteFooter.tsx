@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Mail, Facebook, MapPin } from "lucide-react";
-import { Logo } from "@/components/brand/Logo";
+import { LogoStacked } from "@/components/brand/Logo";
 import { Container } from "@/components/ui/Section";
 import { site, nav } from "@/lib/site";
 
@@ -10,7 +10,9 @@ export function SiteFooter() {
       <Container className="py-14">
         <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
           <div>
-            <Logo className="text-cream" />
+            {/* Reversed out: terracotta on olive is too low-contrast, so the
+                whole lockup inherits the cream text colour instead. */}
+            <LogoStacked tone="current" className="items-start text-cream" />
             <p className="script mt-5 text-2xl text-blush">
               Join us in preserving history and building a stronger future for
               Grassy Lake.

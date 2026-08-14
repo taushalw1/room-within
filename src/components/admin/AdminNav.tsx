@@ -13,7 +13,7 @@ import {
   Users,
   Wallet,
 } from "lucide-react";
-import { LogoInline } from "@/components/brand/Logo";
+import { LogoLockup } from "@/components/brand/Logo";
 import { cn } from "@/lib/cn";
 
 const links = [
@@ -35,11 +35,8 @@ export function AdminNav() {
       aria-label="Admin"
       className="flex gap-1 overflow-x-auto border-b border-tan/25 bg-parchment px-4 py-2 lg:h-dvh lg:w-60 lg:shrink-0 lg:flex-col lg:gap-0.5 lg:overflow-y-auto lg:border-b-0 lg:border-r lg:px-3 lg:py-5"
     >
-      <Link
-        href="/admin"
-        className="mb-1 hidden px-2 py-2 text-olive-deep lg:block"
-      >
-        <LogoInline />
+      <Link href="/admin" className="mb-1 hidden px-2 py-2 lg:block">
+        <LogoLockup />
       </Link>
 
       {links.map(({ href, label, icon: Icon, exact }) => {

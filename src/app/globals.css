@@ -30,6 +30,9 @@
   --color-tan: #b99b6b;
   --color-bark: #7a6647;
 
+  /* The logo's terracotta — the house and sprout are always drawn in this */
+  --color-terracotta: #bf7b4b;
+
   /* Text */
   --color-ink: #3a372f;
   --color-ink-soft: #6b6659;
