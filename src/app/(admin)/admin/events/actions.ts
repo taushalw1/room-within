@@ -10,7 +10,7 @@ export type ActionResult = { ok: boolean; message: string };
 
 const DEMO_RESULT: ActionResult = {
   ok: false,
-  message: "Demo mode — nothing was saved. Connect the database to add real events.",
+  message: "Demo mode — nothing was saved. Connect the database to manage real events.",
 };
 
 const schema = z
@@ -55,13 +55,12 @@ function slugify(title: string) {
     .slice(0, 60);
 }
 
-export async function addEvent(
-  _prev: ActionResult | null,
-  formData: FormData,
-): Promise<ActionResult> {
-  await requireAdmin();
-  if (isDemoMode) return DEMO_RESULT;
-
+/**
+ * Shared parsing for add and edit, so the two can't drift apart — a rule
+ * enforced when creating an event but not when changing it is worse than no
+ * rule at all.
+ */
+function readForm(formData: FormData) {
   const parsed = schema.safeParse({
     title: formData.get("title"),
     description: formData.get("description"),
@@ -80,7 +79,7 @@ export async function addEvent(
   });
 
   if (!parsed.success) {
-    return { ok: false, message: parsed.error.issues[0].message };
+    return { ok: false as const, error: parsed.error.issues[0].message };
   }
 
   const v = parsed.data;
@@ -93,52 +92,140 @@ export async function addEvent(
     : new Date(`${v.date}T${v.endTime}:00`);
 
   if (endsAt <= startsAt) {
-    return { ok: false, message: "The finish time needs to be after the start." };
+    return {
+      ok: false as const,
+      error: "The finish time needs to be after the start.",
+    };
   }
+
+  return {
+    ok: true as const,
+    values: v,
+    row: {
+      title: v.title,
+      description: v.description || null,
+      starts_at: startsAt.toISOString(),
+      ends_at: endsAt.toISOString(),
+      all_day: Boolean(v.allDay),
+      location: v.location || null,
+      is_at_building: Boolean(v.atBuilding),
+      room_id: v.atBuilding && v.roomId ? v.roomId : null,
+      host_name: v.hostName || null,
+      contact_email: v.contactEmail || null,
+      category: v.category || "community",
+      external_url: v.externalUrl || null,
+      status: v.publish ? ("published" as const) : ("draft" as const),
+    },
+  } as const;
+}
+
+/** Everywhere an event is visible, refreshed after any change. */
+function revalidateEventViews() {
+  revalidatePath("/admin/events");
+  revalidatePath("/calendar");
+  revalidatePath("/");
+}
+
+export async function addEvent(
+  _prev: ActionResult | null,
+  formData: FormData,
+): Promise<ActionResult> {
+  await requireAdmin();
+  if (isDemoMode) return DEMO_RESULT;
+
+  const parsed = readForm(formData);
+  if (!parsed.ok) return { ok: false, message: parsed.error };
 
   const supabase = await getServerSupabase();
   if (!supabase) return { ok: false, message: "No database connection." };
 
   // Slugs are unique, so add a suffix rather than failing on a repeat name —
   // "Thursday Coffee Group" happens every week.
-  const base = slugify(v.title) || "event";
+  const base = slugify(parsed.values.title) || "event";
   let slug = base;
   const { data: clash } = await supabase
     .from("events")
     .select("id")
     .eq("slug", slug)
     .maybeSingle();
-  if (clash) slug = `${base}-${v.date.replace(/-/g, "").slice(4)}`;
+  if (clash) slug = `${base}-${parsed.values.date.replace(/-/g, "").slice(4)}`;
 
-  const { error } = await supabase.from("events").insert({
-    title: v.title,
-    slug,
-    description: v.description || null,
-    starts_at: startsAt.toISOString(),
-    ends_at: endsAt.toISOString(),
-    all_day: Boolean(v.allDay),
-    location: v.location || null,
-    is_at_building: Boolean(v.atBuilding),
-    room_id: v.atBuilding && v.roomId ? v.roomId : null,
-    host_name: v.hostName || null,
-    contact_email: v.contactEmail || null,
-    category: v.category || "community",
-    external_url: v.externalUrl || null,
-    status: v.publish ? "published" : "draft",
-  });
+  const { error } = await supabase.from("events").insert({ ...parsed.row, slug });
 
   if (error) return { ok: false, message: `Couldn't save that: ${error.message}` };
 
-  revalidatePath("/admin/events");
-  revalidatePath("/calendar");
-  revalidatePath("/");
+  revalidateEventViews();
 
   return {
     ok: true,
-    message: v.publish
+    message: parsed.values.publish
       ? "Added, and it's now on the community calendar."
       : "Saved as a draft — publish it when you're ready.",
   };
+}
+
+/**
+ * Save changes to an existing event.
+ *
+ * The slug is deliberately left alone. It's part of the event's web address,
+ * and someone may already have shared that link — renaming the event shouldn't
+ * quietly break it.
+ */
+export async function updateEvent(
+  _prev: ActionResult | null,
+  formData: FormData,
+): Promise<ActionResult> {
+  await requireAdmin();
+  if (isDemoMode) return DEMO_RESULT;
+
+  const id = String(formData.get("eventId") ?? "");
+  if (!id) return { ok: false, message: "Missing event." };
+
+  const parsed = readForm(formData);
+  if (!parsed.ok) return { ok: false, message: parsed.error };
+
+  const supabase = await getServerSupabase();
+  if (!supabase) return { ok: false, message: "No database connection." };
+
+  // A cancelled event stays cancelled when it's merely edited — putting it
+  // back on the calendar should be a deliberate click on Publish.
+  const { data: current } = await supabase
+    .from("events")
+    .select("status")
+    .eq("id", id)
+    .single();
+
+  const status = current?.status === "cancelled" ? "cancelled" : parsed.row.status;
+
+  const { error } = await supabase
+    .from("events")
+    .update({ ...parsed.row, status, updated_at: new Date().toISOString() })
+    .eq("id", id);
+
+  if (error) return { ok: false, message: `Couldn't save that: ${error.message}` };
+
+  revalidateEventViews();
+  return { ok: true, message: "Changes saved." };
+}
+
+export async function deleteEvent(
+  _prev: ActionResult | null,
+  formData: FormData,
+): Promise<ActionResult> {
+  await requireAdmin();
+  if (isDemoMode) return DEMO_RESULT;
+
+  const id = String(formData.get("id") ?? "");
+  if (!id) return { ok: false, message: "Missing event." };
+
+  const supabase = await getServerSupabase();
+  if (!supabase) return { ok: false, message: "No database connection." };
+
+  const { error } = await supabase.from("events").delete().eq("id", id);
+  if (error) return { ok: false, message: `Couldn't delete that: ${error.message}` };
+
+  revalidateEventViews();
+  return { ok: true, message: "Event deleted." };
 }
 
 /** Publish, unpublish, or cancel an event that's already been created. */
@@ -166,9 +253,7 @@ export async function setEventStatus(
 
   if (error) return { ok: false, message: error.message };
 
-  revalidatePath("/admin/events");
-  revalidatePath("/calendar");
-  revalidatePath("/");
+  revalidateEventViews();
 
   return {
     ok: true,

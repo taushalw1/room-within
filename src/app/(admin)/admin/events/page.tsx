@@ -1,21 +1,12 @@
 import { CalendarDays, Eye, PencilLine } from "lucide-react";
-import { AddEventForm } from "@/components/admin/AddEventForm";
 import { AddPanel } from "@/components/admin/AddPanel";
-import { EventStatusButtons } from "@/components/admin/EventStatusButtons";
+import { EventForm } from "@/components/admin/EventForm";
+import { EventRow } from "@/components/admin/EventRow";
 import { Stat } from "@/components/admin/Stat";
-import {
-  Badge,
-  Card,
-  CardHeader,
-  EmptyRow,
-  Table,
-  Td,
-  Th,
-} from "@/components/ui/Table";
+import { Card, CardHeader, EmptyRow, Table, Th } from "@/components/ui/Table";
 import { ButtonLink } from "@/components/ui/Button";
 import { getAdminEvents } from "@/lib/data/admin";
 import { getRooms } from "@/lib/data/public";
-import { dateTimeRange } from "@/lib/format";
 
 export default async function EventsPage() {
   const [events, rooms] = await Promise.all([getAdminEvents(), getRooms()]);
@@ -69,7 +60,7 @@ export default async function EventsPage() {
         label="Add an event"
         description="It doesn't have to be at Room Within — anything the community should know about."
       >
-        <AddEventForm rooms={rooms} />
+        <EventForm rooms={rooms} />
       </AddPanel>
 
       <Card>
@@ -94,41 +85,7 @@ export default async function EventsPage() {
               </EmptyRow>
             ) : (
               upcoming.map((e) => (
-                <tr key={e.id}>
-                  <Td>{dateTimeRange(e.starts_at, e.ends_at)}</Td>
-                  <Td>
-                    <span className="font-medium">{e.title}</span>
-                    {e.host_name && (
-                      <span className="block text-xs text-ink-faint">
-                        {e.host_name}
-                      </span>
-                    )}
-                  </Td>
-                  <Td className="text-ink-soft">
-                    {e.location ?? "—"}
-                    {!e.is_at_building && (
-                      <span className="block text-xs text-ink-faint">
-                        elsewhere in the community
-                      </span>
-                    )}
-                  </Td>
-                  <Td align="right">
-                    <Badge
-                      tone={
-                        e.status === "published"
-                          ? "good"
-                          : e.status === "cancelled"
-                            ? "bad"
-                            : "warn"
-                      }
-                    >
-                      {e.status}
-                    </Badge>
-                  </Td>
-                  <Td align="right">
-                    <EventStatusButtons eventId={e.id} status={e.status} />
-                  </Td>
-                </tr>
+                <EventRow key={e.id} event={e} rooms={rooms} />
               ))
             )}
           </tbody>
@@ -137,24 +94,23 @@ export default async function EventsPage() {
 
       {past.length > 0 && (
         <Card>
-          <CardHeader title="Already happened" />
+          <CardHeader
+            title="Already happened"
+            description="Kept so the calendar has a history. Delete anything you don't need."
+          />
           <Table>
             <thead>
               <tr>
                 <Th>When</Th>
                 <Th>What</Th>
+                <Th>Where</Th>
                 <Th align="right">Status</Th>
+                <Th align="right" />
               </tr>
             </thead>
             <tbody>
               {past.slice(0, 12).map((e) => (
-                <tr key={e.id} className="opacity-70">
-                  <Td>{dateTimeRange(e.starts_at, e.ends_at)}</Td>
-                  <Td>{e.title}</Td>
-                  <Td align="right">
-                    <Badge tone="neutral">{e.status}</Badge>
-                  </Td>
-                </tr>
+                <EventRow key={e.id} event={e} rooms={rooms} />
               ))}
             </tbody>
           </Table>

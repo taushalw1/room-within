@@ -1,8 +1,8 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState, useEffect, useState } from "react";
 import { format, addDays } from "date-fns";
-import { addEvent } from "@/app/(admin)/admin/events/actions";
+import { addEvent, updateEvent } from "@/app/(admin)/admin/events/actions";
 import {
   CheckField,
   Feedback,
@@ -10,7 +10,8 @@ import {
   SubmitButton,
   inputClass,
 } from "@/components/ui/Form";
-import type { RoomRow } from "@/lib/data/types";
+import { Button } from "@/components/ui/Button";
+import type { EventRow, RoomRow } from "@/lib/data/types";
 
 const CATEGORIES = [
   "community",
@@ -21,17 +22,50 @@ const CATEGORIES = [
   "fundraising",
 ];
 
-export function AddEventForm({ rooms }: { rooms: RoomRow[] }) {
-  const [result, action] = useActionState(addEvent, null);
-  const [allDay, setAllDay] = useState(false);
-  const [atBuilding, setAtBuilding] = useState(true);
+/**
+ * One form for both adding and editing.
+ *
+ * Pass `event` to edit it; leave it out to add a new one. Keeping these as a
+ * single component means the fields, the conditional logic and the wording
+ * can't drift apart between the two.
+ */
+export function EventForm({
+  rooms,
+  event,
+  onSaved,
+  onCancel,
+}: {
+  rooms: RoomRow[];
+  event?: EventRow;
+  onSaved?: () => void;
+  onCancel?: () => void;
+}) {
+  const editing = Boolean(event);
+  const [result, action] = useActionState(
+    editing ? updateEvent : addEvent,
+    null,
+  );
+
+  const [allDay, setAllDay] = useState(event?.all_day ?? false);
+  const [atBuilding, setAtBuilding] = useState(event?.is_at_building ?? true);
+
+  // Collapse the row once the save has actually succeeded.
+  useEffect(() => {
+    if (result?.ok && editing) onSaved?.();
+  }, [result, editing, onSaved]);
+
+  const start = event ? new Date(event.starts_at) : null;
+  const end = event ? new Date(event.ends_at) : null;
 
   return (
     <form action={action} className="space-y-5">
+      {event && <input type="hidden" name="eventId" value={event.id} />}
+
       <Field label="What's it called">
         <input
           name="title"
           required
+          defaultValue={event?.title}
           placeholder="Thursday Morning Coffee Group"
           className={inputClass}
         />
@@ -41,6 +75,7 @@ export function AddEventForm({ rooms }: { rooms: RoomRow[] }) {
         <textarea
           name="description"
           rows={3}
+          defaultValue={event?.description ?? ""}
           placeholder="Drop in for a cup and a chat. No sign-up, no cost — just come."
           className={`${inputClass} resize-y`}
         />
@@ -54,7 +89,10 @@ export function AddEventForm({ rooms }: { rooms: RoomRow[] }) {
               name="date"
               type="date"
               required
-              defaultValue={format(addDays(new Date(), 7), "yyyy-MM-dd")}
+              defaultValue={format(
+                start ?? addDays(new Date(), 7),
+                "yyyy-MM-dd",
+              )}
               className={inputClass}
             />
           </Field>
@@ -67,7 +105,7 @@ export function AddEventForm({ rooms }: { rooms: RoomRow[] }) {
                   type="time"
                   step={900}
                   required
-                  defaultValue="09:30"
+                  defaultValue={start ? format(start, "HH:mm") : "09:30"}
                   className={inputClass}
                 />
               </Field>
@@ -77,7 +115,7 @@ export function AddEventForm({ rooms }: { rooms: RoomRow[] }) {
                   type="time"
                   step={900}
                   required
-                  defaultValue="11:00"
+                  defaultValue={end ? format(end, "HH:mm") : "11:00"}
                   className={inputClass}
                 />
               </Field>
@@ -121,7 +159,11 @@ export function AddEventForm({ rooms }: { rooms: RoomRow[] }) {
         <div className="mt-4 grid gap-4 sm:grid-cols-2">
           {atBuilding && (
             <Field label="Which room" hint="Optional — helps avoid clashes.">
-              <select name="roomId" className={inputClass}>
+              <select
+                name="roomId"
+                defaultValue={event?.room_id ?? ""}
+                className={inputClass}
+              >
                 <option value="">Not a specific room</option>
                 {rooms.map((r) => (
                   <option key={r.id} value={r.id}>
@@ -138,6 +180,7 @@ export function AddEventForm({ rooms }: { rooms: RoomRow[] }) {
           >
             <input
               name="location"
+              defaultValue={event?.location ?? ""}
               placeholder={
                 atBuilding ? "The Gathering Room" : "Main Street, Grassy Lake"
               }
@@ -153,15 +196,25 @@ export function AddEventForm({ rooms }: { rooms: RoomRow[] }) {
         <Field label="Who's running it">
           <input
             name="hostName"
+            defaultValue={event?.host_name ?? ""}
             placeholder="Room Within"
             className={inputClass}
           />
         </Field>
         <Field label="Contact email" hint="Optional.">
-          <input name="contactEmail" type="email" className={inputClass} />
+          <input
+            name="contactEmail"
+            type="email"
+            defaultValue={event?.contact_email ?? ""}
+            className={inputClass}
+          />
         </Field>
         <Field label="Category">
-          <select name="category" defaultValue="community" className={inputClass}>
+          <select
+            name="category"
+            defaultValue={event?.category ?? "community"}
+            className={inputClass}
+          >
             {CATEGORIES.map((c) => (
               <option key={c} value={c}>
                 {c}
@@ -175,6 +228,7 @@ export function AddEventForm({ rooms }: { rooms: RoomRow[] }) {
         <input
           name="externalUrl"
           type="url"
+          defaultValue={event?.external_url ?? ""}
           placeholder="https://"
           className={inputClass}
         />
@@ -182,13 +236,26 @@ export function AddEventForm({ rooms }: { rooms: RoomRow[] }) {
 
       <CheckField
         name="publish"
-        label="Put it on the community calendar now"
-        defaultChecked
-        hint="Leave unticked to save it as a draft only you can see."
+        label={
+          editing
+            ? "Keep it on the community calendar"
+            : "Put it on the community calendar now"
+        }
+        defaultChecked={event ? event.status === "published" : true}
+        hint={
+          event?.status === "cancelled"
+            ? "This event is cancelled. Saving won't change that — use Publish to put it back."
+            : "Leave unticked to keep it as a draft only you can see."
+        }
       />
 
-      <div className="flex flex-wrap items-center gap-4">
-        <SubmitButton>Add event</SubmitButton>
+      <div className="flex flex-wrap items-center gap-3">
+        <SubmitButton>{editing ? "Save changes" : "Add event"}</SubmitButton>
+        {onCancel && (
+          <Button type="button" variant="ghost" onClick={onCancel}>
+            Cancel
+          </Button>
+        )}
         <Feedback result={result} />
       </div>
     </form>

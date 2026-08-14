@@ -21,19 +21,16 @@ const schema = z.object({
   notes: z.string().trim().max(2000).optional(),
 });
 
-/** Record something Tausha has spent money on. */
-export async function addExpense(
-  _prev: ActionResult | null,
-  formData: FormData,
-): Promise<ActionResult> {
-  await requireAdmin();
-  if (isDemoMode) {
-    return {
-      ok: false,
-      message: "Demo mode — nothing was saved. Connect the database to record real costs.",
-    };
-  }
+const DEMO_RESULT: ActionResult = {
+  ok: false,
+  message: "Demo mode — nothing was saved. Connect the database to record real costs.",
+};
 
+/**
+ * Shared parsing for add and edit, so a rule can't end up enforced on one and
+ * not the other.
+ */
+function readForm(formData: FormData) {
   const parsed = schema.safeParse({
     incurredOn: formData.get("incurredOn"),
     vendor: formData.get("vendor"),
@@ -46,13 +43,10 @@ export async function addExpense(
   });
 
   if (!parsed.success) {
-    return { ok: false, message: parsed.error.issues[0].message };
+    return { ok: false as const, error: parsed.error.issues[0].message };
   }
 
   const v = parsed.data;
-  const supabase = await getServerSupabase();
-  if (!supabase) return { ok: false, message: "No database connection." };
-
   const amountCents = toCents(v.amount);
 
   // The amount entered is what left the bank, so GST is worked back out of it
@@ -62,21 +56,90 @@ export async function addExpense(
       ? toCents(v.tax)
       : Math.round(amountCents - amountCents / (1 + GST_RATE));
 
-  const { error } = await supabase.from("expenses").insert({
-    incurred_on: v.incurredOn,
-    vendor: v.vendor || null,
-    category: v.category,
-    description: v.description || null,
-    amount_cents: amountCents,
-    tax_cents: taxCents,
-    payment_method: v.paymentMethod || null,
-    notes: v.notes || null,
-  });
+  return {
+    ok: true as const,
+    row: {
+      incurred_on: v.incurredOn,
+      vendor: v.vendor || null,
+      category: v.category,
+      description: v.description || null,
+      amount_cents: amountCents,
+      tax_cents: taxCents,
+      payment_method: v.paymentMethod || null,
+      notes: v.notes || null,
+    },
+  } as const;
+}
+
+function revalidateFinanceViews() {
+  revalidatePath("/admin/finance");
+  revalidatePath("/admin");
+}
+
+/** Record something Tausha has spent money on. */
+export async function addExpense(
+  _prev: ActionResult | null,
+  formData: FormData,
+): Promise<ActionResult> {
+  await requireAdmin();
+  if (isDemoMode) return DEMO_RESULT;
+
+  const parsed = readForm(formData);
+  if (!parsed.ok) return { ok: false, message: parsed.error };
+
+  const supabase = await getServerSupabase();
+  if (!supabase) return { ok: false, message: "No database connection." };
+
+  const { error } = await supabase.from("expenses").insert(parsed.row);
+  if (error) return { ok: false, message: `Couldn't save that: ${error.message}` };
+
+  revalidateFinanceViews();
+  return { ok: true, message: "Cost recorded." };
+}
+
+export async function updateExpense(
+  _prev: ActionResult | null,
+  formData: FormData,
+): Promise<ActionResult> {
+  await requireAdmin();
+  if (isDemoMode) return DEMO_RESULT;
+
+  const id = String(formData.get("expenseId") ?? "");
+  if (!id) return { ok: false, message: "Missing cost." };
+
+  const parsed = readForm(formData);
+  if (!parsed.ok) return { ok: false, message: parsed.error };
+
+  const supabase = await getServerSupabase();
+  if (!supabase) return { ok: false, message: "No database connection." };
+
+  const { error } = await supabase
+    .from("expenses")
+    .update(parsed.row)
+    .eq("id", id);
 
   if (error) return { ok: false, message: `Couldn't save that: ${error.message}` };
 
-  revalidatePath("/admin/finance");
-  revalidatePath("/admin");
+  revalidateFinanceViews();
+  return { ok: true, message: "Changes saved." };
+}
 
-  return { ok: true, message: "Cost recorded." };
+export async function deleteExpense(
+  _prev: ActionResult | null,
+  formData: FormData,
+): Promise<ActionResult> {
+  await requireAdmin();
+  if (isDemoMode) return DEMO_RESULT;
+
+  const id = String(formData.get("id") ?? "");
+  if (!id) return { ok: false, message: "Missing cost." };
+
+  const supabase = await getServerSupabase();
+  if (!supabase) return { ok: false, message: "No database connection." };
+
+  const { error } = await supabase.from("expenses").delete().eq("id", id);
+  if (error) return { ok: false, message: `Couldn't delete that: ${error.message}` };
+
+  revalidateFinanceViews();
+  return { ok: true, message: "Cost deleted." };
 }

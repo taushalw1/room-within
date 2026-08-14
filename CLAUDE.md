@@ -47,9 +47,18 @@ that I can't fix safely — best to ask Tyler to take a look."* Don't push.
 
 ### Before you finish any task
 
-Run `npm run build`. If it fails, fix it before telling her you're done. A
+Run **`npm run check`**. If it fails, fix it before telling her you're done. A
 change that breaks the build will break the live site the next time anyone
 publishes.
+
+**Always `npm run check`, never `npm run build`.** Both run the same checks, but
+`build` writes into `.next` — the directory the dev server is serving from — so
+running it while a preview is open corrupts the running app and the page dies
+with `__webpack_modules__[moduleId] is not a function`. `check` builds into a
+scratch directory instead. `build` is only for deploying.
+
+If a preview ever does break that way: stop the server, delete `.next`, and
+start it again.
 
 ---
 

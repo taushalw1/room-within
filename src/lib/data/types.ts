@@ -36,6 +36,7 @@ export type EventRow = {
   is_at_building: boolean;
   room_id: string | null;
   host_name: string | null;
+  contact_email: string | null;
   category: string | null;
   image_url: string | null;
   external_url: string | null;

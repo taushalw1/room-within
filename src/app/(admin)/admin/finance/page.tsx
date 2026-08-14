@@ -1,6 +1,7 @@
 import { HandHeart, PiggyBank, Receipt, TrendingUp } from "lucide-react";
-import { AddExpenseForm } from "@/components/admin/AddExpenseForm";
 import { AddPanel } from "@/components/admin/AddPanel";
+import { ExpenseForm } from "@/components/admin/ExpenseForm";
+import { ExpenseRow } from "@/components/admin/ExpenseRow";
 import { MonthlyChart } from "@/components/admin/MonthlyChart";
 import { Stat } from "@/components/admin/Stat";
 import {
@@ -59,6 +60,7 @@ export default async function FinancePage() {
   }
   const categories = [...byCategory.entries()].sort((a, b) => b[1] - a[1]);
   const categoryMax = categories[0]?.[1] ?? 1;
+  const categoryNames = categories.map(([c]) => c);
 
   return (
     <div className="space-y-8">
@@ -186,7 +188,7 @@ export default async function FinancePage() {
         label="Record a cost"
         description="Anything the building or the business has spent money on."
       >
-        <AddExpenseForm existingCategories={categories.map(([c]) => c)} />
+        <ExpenseForm existingCategories={categoryNames} />
       </AddPanel>
 
       <Card>
@@ -202,23 +204,22 @@ export default async function FinancePage() {
               <Th>What for</Th>
               <Th>Category</Th>
               <Th align="right">Amount</Th>
+              <Th align="right" />
             </tr>
           </thead>
           <tbody>
             {expenses.length === 0 ? (
-              <EmptyRow colSpan={5}>Nothing recorded yet.</EmptyRow>
+              <EmptyRow colSpan={6}>Nothing recorded yet.</EmptyRow>
             ) : (
-              expenses.slice(0, 12).map((e) => (
-                <tr key={e.id}>
-                  <Td>{dateShort(e.incurred_on)}</Td>
-                  <Td>{e.vendor ?? "—"}</Td>
-                  <Td className="text-ink-soft">{e.description ?? "—"}</Td>
-                  <Td>{e.category}</Td>
-                  <Td align="right" className="font-semibold">
-                    {moneyExact(e.amount_cents)}
-                  </Td>
-                </tr>
-              ))
+              expenses
+                .slice(0, 20)
+                .map((e) => (
+                  <ExpenseRow
+                    key={e.id}
+                    expense={e}
+                    categories={categoryNames}
+                  />
+                ))
             )}
           </tbody>
         </Table>
