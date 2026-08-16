@@ -39,7 +39,17 @@ export async function GET(request: Request) {
   // being useful to anyone who finds it.
   const secret = process.env.CRON_SECRET;
   const auth = request.headers.get("authorization");
-  if (secret && auth !== `Bearer ${secret}`) {
+
+  if (!secret) {
+    // Fail closed. A missing secret used to mean "no check at all", so
+    // forgetting the environment variable left this endpoint open to anyone
+    // who found the URL — and it sends real email to real tenants. Locally
+    // it's still open, so the run can be tested without ceremony.
+    if (process.env.NODE_ENV === "production") {
+      console.error("CRON_SECRET is not set — refusing to run the reminders.");
+      return new Response("Not configured", { status: 503 });
+    }
+  } else if (auth !== `Bearer ${secret}`) {
     return new Response("Unauthorized", { status: 401 });
   }
 
