@@ -1,0 +1,29 @@
+# =============================================================================
+# Netlify configuration
+# =============================================================================
+
+[build]
+  command = "npm run build"
+  publish = ".next"
+
+# Netlify's Next.js runtime. Handles the App Router, server actions,
+# middleware, and route handlers.
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
+
+# next/image is served through Netlify's image CDN, which — unlike Next's own
+# optimiser — needs remote hosts allowing here as well as in next.config.ts.
+# This is the bucket Tausha's photo and any room photos are served from.
+[images]
+  remote_images = [
+    "https://.*\\.supabase\\.co/storage/v1/object/public/.*"
+  ]
+
+[functions]
+  node_bundler = "esbuild"
+
+# Local `netlify dev`, if you ever use it. The app's own port is 4300.
+[dev]
+  command = "npm run dev"
+  targetPort = 4300
+  framework = "#custom"

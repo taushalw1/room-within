@@ -73,7 +73,7 @@ migrations, deployment configuration, and anything involving secrets.
 ## The project
 
 **Stack:** Next.js (App Router, TypeScript) · Tailwind CSS v4 · Supabase
-(Postgres + Auth + Storage) · Stripe · Resend for email · deployed on Vercel.
+(Postgres + Auth + Storage) · Stripe · Resend for email · deployed on Netlify.
 
 **Four modules**, plus the public website:
 
@@ -111,7 +111,8 @@ colour or font that isn't already in the theme.**
   panels on `/admin/rentals`, `/admin/events` and `/admin/finance`. If she asks
   you to add one, point her at the panel rather than doing it for her — then she
   doesn't need you next time. Do it for her only if she'd rather.
-- Rooms, units and rates → no form yet, so make the database change yourself.
+- Rooms, units and rates → the "Add a room" / "Add a unit" panels and the Edit
+  buttons on `/admin/settings`.
 - Her bio and photo → `src/content/about.ts`
 - The six offerings and the three-year plan → `src/content/offerings.ts`
 - Contact details and navigation → `src/lib/site.ts`

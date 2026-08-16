@@ -65,7 +65,7 @@ export default function PrivacyPage() {
               <p className="mt-3">
                 Nobody is sold or given your information. It&rsquo;s held using
                 Supabase (database and sign-in), Stripe (payments), Resend
-                (email) and Vercel (hosting), each of which processes it only to
+                (email) and Netlify (hosting), each of which processes it only to
                 make this website work.
               </p>
             </div>

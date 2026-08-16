@@ -15,7 +15,7 @@ or not you've done the next one.
 npm install && npm run dev
 ```
 
-Open http://localhost:3000 for the public site and http://localhost:3000/admin
+Open http://localhost:4300 for the public site and http://localhost:4300/admin
 for Tausha's side.
 
 ---
@@ -27,7 +27,7 @@ git init && git add -A && git commit -m "Room Within: initial app"
 ```
 
 Then create an empty repo on GitHub and push to it. This matters more than it
-looks: `/publish` in Tausha's window is a `git push`, and Vercel deploying on
+looks: `/publish` in Tausha's window is a `git push`, and Netlify deploying on
 push is what makes that work.
 
 ---
@@ -41,7 +41,7 @@ push is what makes that work.
    first if you know the real ones.
 4. Project Settings → API → copy the values into `.env.local`
    (start from `.env.example`).
-5. Authentication → URL Configuration → add `http://localhost:3000/**` and your
+5. Authentication → URL Configuration → add `http://localhost:4300/**` and your
    production URL to the redirect allow-list.
 6. Have Tausha sign in once at `/login`, then make her an admin:
 
@@ -59,13 +59,13 @@ Until someone has that role, `/admin` is locked to everyone.
    account. Nothing works until Stripe has verified the account.
 2. Developers → API keys → copy into `.env.local`. **Use the test keys first.**
 3. Developers → Webhooks → Add endpoint:
-   - URL: `https://your-site.vercel.app/api/stripe/webhook`
+   - URL: `https://your-site.netlify.app/api/stripe/webhook`
    - Event: `checkout.session.completed`
    - Copy the signing secret into `STRIPE_WEBHOOK_SECRET`.
 4. Test locally with the Stripe CLI:
 
 ```bash
-stripe listen --forward-to localhost:3000/api/stripe/webhook
+stripe listen --forward-to localhost:4300/api/stripe/webhook
 ```
 
 Card `4242 4242 4242 4242`, any future expiry, any CVC.
@@ -91,16 +91,45 @@ so reminders will look like they've failed when they've just been blocked.
 
 ---
 
-## 6. Deploy to Vercel
+## 6. Deploy to Netlify
 
-1. Import the GitHub repo at [vercel.com](https://vercel.com).
-2. Add every variable from `.env.local` under Settings → Environment Variables.
-   Set `NEXT_PUBLIC_SITE_URL` to the real URL.
+1. **Add new site → Import an existing project**, and pick the GitHub repo.
+   Netlify reads `netlify.toml`, so the build command and the Next.js runtime
+   are already set — don't override them.
+2. **Site configuration → Environment variables.** Add every filled-in value
+   from `.env.local`, and set `NEXT_PUBLIC_SITE_URL` to the live address
+   (`https://your-site.netlify.app`, or the custom domain once it's attached).
 3. Deploy.
+4. Go back to **Supabase → Authentication → URL Configuration** and add the
+   live domain to the redirect allow-list, alongside the localhost entry. Both
+   need to be there — localhost for development, the domain for everyone else.
 
-`vercel.json` already schedules the daily reminder job for 15:00 UTC
-(≈9am Mountain). Set `CRON_SECRET` to any long random string or the endpoint is
-open to anyone who finds it.
+### The daily reminder job
+
+`netlify/functions/daily-reminders.mjs` is a **scheduled function**, Netlify's
+equivalent of a cron job. It runs at 15:00 UTC — 9am in Alberta over summer,
+8am in winter — and calls the app's own `/api/cron/reminders` route, so the
+reminder logic lives in one place rather than two.
+
+**`CRON_SECRET` must be set in Netlify's environment variables**, or the route
+refuses the call and no reminders go out. Any long random string will do:
+
+```powershell
+[guid]::NewGuid().ToString() + [guid]::NewGuid().ToString()
+```
+
+Check it's registered under **Site configuration → Functions → Scheduled
+functions** after the first deploy, and use **Trigger** there to test a run
+without waiting for tomorrow.
+
+### Netlify-specific notes
+
+- `next/image` is served by Netlify's image CDN, which needs remote hosts
+  allowed in `netlify.toml` as well as `next.config.ts`. The Supabase storage
+  bucket is already listed; add any other host you start loading images from.
+- Server actions, middleware and route handlers all work through
+  `@netlify/plugin-nextjs`. It's a normal dependency in `package.json` so the
+  build doesn't depend on Netlify's auto-detection.
 
 ---
 
@@ -155,12 +184,9 @@ deleting the row from `calendar_tokens`.
 
 Honest list of what isn't built yet:
 
-- **Creating rooms and units from the admin UI.** Tenants, events and expenses
-  all have proper forms now. Rooms and units don't — they change rarely enough
-  that asking Claude (or editing `supabase/seed.sql`) is fine, but they're the
-  obvious next forms if she finds herself wanting them.
-- **Editing and deleting** what's already been created. Events can be published,
-  hidden and cancelled; nothing can yet be edited after the fact or removed.
+- **Editing a booking after it's confirmed.** Bookings can be approved,
+  declined and paid, but not moved to a different time without cancelling and
+  rebooking.
 - **Generating monthly rent invoices.** The schema, the reminder job and the
   overdue tracking are all there, but something has to create each month's rent
   invoices from the active leases — a monthly cron beside the reminders one.

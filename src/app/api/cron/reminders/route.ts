@@ -3,7 +3,8 @@ import { getServiceSupabase } from "@/lib/supabase/server";
 import { sendInvoiceReminder } from "@/lib/email/send";
 
 /**
- * Daily reminder run. Triggered by Vercel Cron (see vercel.json).
+ * Daily reminder run. Triggered by a Netlify scheduled function — see
+ * netlify/functions/daily-reminders.mjs.
  *
  * The schedule:
  *   3 days before due   → "coming up"
@@ -34,8 +35,8 @@ function kindForDaysOverdue(daysOverdue: number): ReminderKind | null {
 }
 
 export async function GET(request: Request) {
-  // Vercel Cron sends this header; a secret keeps the URL from being useful
-  // to anyone who finds it.
+  // The scheduled function sends this header; the secret keeps the URL from
+  // being useful to anyone who finds it.
   const secret = process.env.CRON_SECRET;
   const auth = request.headers.get("authorization");
   if (secret && auth !== `Bearer ${secret}`) {

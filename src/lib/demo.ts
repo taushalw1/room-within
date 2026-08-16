@@ -6,7 +6,7 @@ import { isSupabaseConfigured } from "@/lib/supabase/config";
  * In this state the admin area opens without a login and shows sample figures,
  * so the whole app can be explored before Supabase is set up.
  *
- * The `NODE_ENV` check is what makes this safe. On Vercel `NODE_ENV` is
+ * The `NODE_ENV` check is what makes this safe. On Netlify `NODE_ENV` is
  * "production", so if the environment variables were ever missing in a real
  * deployment the admin area would stay locked rather than falling open.
  */

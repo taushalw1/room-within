@@ -10,7 +10,7 @@ const nextConfig: NextConfig = {
    *
    * So `npm run check` sets NEXT_DIST_DIR to a scratch folder, and a
    * verification build can run at any time without disturbing the preview.
-   * Vercel doesn't set the variable, so deploys still build to `.next`.
+   * Netlify doesn't set the variable, so deploys still build to `.next`.
    */
   distDir: process.env.NEXT_DIST_DIR || ".next",
 

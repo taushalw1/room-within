@@ -42,7 +42,7 @@ Postgres, with an append-only access log.
 ## Stack
 
 Next.js (App Router) · TypeScript · Tailwind CSS v4 · Supabase · Stripe ·
-Resend · deployed on Vercel.
+Resend · deployed on Netlify.
 
 ## Layout
 
@@ -50,6 +50,7 @@ Resend · deployed on Vercel.
 src/app/(site)      public pages
 src/app/(admin)     Tausha's admin area
 src/app/api         calendar feeds, Stripe webhook, daily reminders
+netlify/functions   the scheduled job that triggers those reminders
 src/components      ui/ · brand/ · site/ · admin/ · booking/
 src/content         copy Tausha owns — her bio, the six offerings
 src/lib             data access, auth, email, pricing, formatting

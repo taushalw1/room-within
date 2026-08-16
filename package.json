@@ -12,6 +12,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@netlify/plugin-nextjs": "^5.15.13",
     "@stripe/stripe-js": "^5.5.0",
     "@supabase/ssr": "^0.7.0",
     "@supabase/supabase-js": "^2.48.0",
