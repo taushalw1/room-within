@@ -6,6 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "check": "node scripts/check.mjs",
+    "check:db": "node scripts/check-db.mjs",
     "start": "next start",
     "lint": "eslint",
     "typecheck": "tsc --noEmit"
