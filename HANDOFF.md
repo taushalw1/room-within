@@ -92,8 +92,12 @@ name in the history fails every build after it with "unrecognized Git
 contributor".
 
 ```powershell
-cd "C:\Users\<her-username>\Documents\Room Within"; git config user.name "Room Within"; git config user.email "roomwithincommunity@gmail.com"
+cd "C:\Users\<her-username>\Documents\Room Within"; git config user.name "Room Within"; git config user.email "318375335+taushalw1@users.noreply.github.com"
 ```
+
+That address is GitHub's built-in one for Tausha's account — the number is
+her account ID. It looks strange but it's permanently tied to her login,
+needs no mailbox, and can't stop working if an email password changes.
 
 Don't set it to her own name, however natural that feels. The trade is that
 the history won't record which of you made a given change — acceptable for two
