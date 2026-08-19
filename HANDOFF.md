@@ -84,13 +84,20 @@ before anything destructive.
 
 ---
 
-## 5. Set her name on commits
+## 5. Set the shared commit identity
 
-So the history says who changed what:
+**Both machines commit as the same identity.** This is not cosmetic — Netlify's
+free plan allows exactly one Git contributor on a private repo, and a second
+name in the history fails every build after it with "unrecognized Git
+contributor".
 
 ```powershell
-cd "C:\Users\<her-username>\Documents\Room Within"; git config user.name "Tausha"; git config user.email "her-address@example.com"
+cd "C:\Users\<her-username>\Documents\Room Within"; git config user.name "Room Within"; git config user.email "roomwithincommunity@gmail.com"
 ```
+
+Don't set it to her own name, however natural that feels. The trade is that
+the history won't record which of you made a given change — acceptable for two
+people, and the alternative is $19 a month or a public repo.
 
 ---
 
@@ -187,6 +194,11 @@ Claude will refuse these deliberately, and she should expect that:
 
 **"Publish isn't working."** Usually the GitHub credential expired. Redo the
 sign-in from step 2.
+
+**Netlify says "unrecognized Git contributor".** A commit was made under a
+different name. Every commit must show "Room Within" as the author. Fix the
+identity as in step 5; anything already committed under the wrong name has to
+be re-authored and force-pushed.
 
 **"The preview page is broken"** — a white screen or `__webpack_modules__`
 error. Ask Claude to *"stop the preview, delete the .next folder, and start it
