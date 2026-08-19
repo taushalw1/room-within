@@ -18,6 +18,10 @@ sample data and nothing she does is real.
 
 Don't email it — it contains the service-role key.
 
+**The repository is public**, so it is doubly important that this file never
+goes into the project folder's git history. It's already in `.gitignore`;
+leave it that way.
+
 ---
 
 ## 1. Install three things

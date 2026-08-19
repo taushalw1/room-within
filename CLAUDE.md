@@ -136,7 +136,11 @@ as a float. Format for display with `money()` / `moneyExact()` from
   verified the caller is an admin. It must never reach the browser.
 - Anything under `/admin` must check `requireAdmin()` server-side. The
   middleware is a convenience, not the security boundary.
-- Never commit `.env.local`.
+- **This repository is public.** Never commit `.env.local`, a key, a token, a
+  password, or any real tenant, booking or counselling data. Anything
+  committed here is readable by anyone, permanently — rewriting history does
+  not reliably remove it once pushed. Secrets belong in `.env.local` locally
+  and in Netlify's environment variables in production, never in a file.
 
 ### Database changes
 
