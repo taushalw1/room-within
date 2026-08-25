@@ -6,9 +6,25 @@ import { Loader2, Mail } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { getBrowserSupabase } from "@/lib/supabase/client";
 
+/**
+ * Why a sign-in link failed, in words that suggest what to do next. An
+ * unexplained bounce back to this form reads as "nothing happened", which is
+ * the worst possible outcome — people just try again and hit the same wall.
+ */
+const LINK_ERRORS: Record<string, string> = {
+  expired:
+    "That link has expired or was already used. Links last one hour and work once — request a fresh one below.",
+  otherbrowser:
+    "That link was opened somewhere other than where it was requested. Open it in the same browser you asked from, or request a new one here.",
+  invalid: "That link didn't work. Request a new one below.",
+  nocode: "That link was incomplete. Request a new one below.",
+  unconfigured: "Signing in isn't switched on yet — Tyler needs to finish the setup.",
+};
+
 export function LoginForm() {
   const searchParams = useSearchParams();
   const next = searchParams.get("next") ?? "/portal";
+  const linkError = searchParams.get("error");
 
   const [email, setEmail] = useState("");
   const [state, setState] = useState<"idle" | "sending" | "sent" | "error">(
@@ -60,6 +76,14 @@ export function LoginForm() {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
+      {linkError && state === "idle" && (
+        <p
+          role="alert"
+          className="rounded-[var(--radius-card)] border border-burgundy/25 bg-blush/40 px-4 py-3 text-sm text-ink-soft"
+        >
+          {LINK_ERRORS[linkError] ?? LINK_ERRORS.invalid}
+        </p>
+      )}
       <label className="block">
         <span className="eyebrow !text-[0.6rem] text-bark">Email address</span>
         <input
