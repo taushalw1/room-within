@@ -13,12 +13,11 @@ import {
   Th,
 } from "@/components/ui/Table";
 import {
+  getDonations,
   getExpenses,
   getInvoices,
   getMonthlyTotals,
 } from "@/lib/data/admin";
-import { isDemoMode } from "@/lib/demo";
-import { sampleDonationTotalCents } from "@/lib/data/sample-admin";
 import { dateShort, money, moneyExact } from "@/lib/format";
 
 const STREAM_LABELS: Record<string, string> = {
@@ -30,10 +29,11 @@ const STREAM_LABELS: Record<string, string> = {
 };
 
 export default async function FinancePage() {
-  const [invoices, expenses, monthly] = await Promise.all([
+  const [invoices, expenses, monthly, donationList] = await Promise.all([
     getInvoices(),
     getExpenses(),
     getMonthlyTotals(),
+    getDonations(),
   ]);
 
   const collected = invoices.reduce((s, i) => s + i.paid_cents, 0);
@@ -41,7 +41,7 @@ export default async function FinancePage() {
     .filter((i) => i.state === "overdue" || i.state === "outstanding")
     .reduce((s, i) => s + i.balance_cents, 0);
   const spent = expenses.reduce((s, e) => s + e.amount_cents, 0);
-  const donations = isDemoMode ? sampleDonationTotalCents : 0;
+  const donations = donationList.reduce((s, d) => s + d.amount_cents, 0);
 
   // Income by part of the business
   const byStream = new Map<string, { collected: number; owed: number }>();
@@ -95,7 +95,11 @@ export default async function FinancePage() {
         <Stat
           label="Donations"
           value={money(donations)}
-          sub="Towards the building fund"
+          sub={
+            donationList.length === 0
+              ? "Towards the building fund"
+              : `From ${donationList.length} ${donationList.length === 1 ? "gift" : "gifts"}`
+          }
           icon={HandHeart}
         />
       </div>
@@ -223,6 +227,78 @@ export default async function FinancePage() {
             )}
           </tbody>
         </Table>
+      </Card>
+
+      {/* ---------- Donations ---------- */}
+      <Card>
+        <CardHeader
+          title="Donations"
+          description="Gifts towards buying and repairing the building. Everyone here has already been thanked by email."
+        />
+        <Table>
+          <thead>
+            <tr>
+              <Th>When</Th>
+              <Th>Who</Th>
+              <Th>What they said</Th>
+              <Th align="right">Amount</Th>
+            </tr>
+          </thead>
+          <tbody>
+            {donationList.length === 0 ? (
+              <EmptyRow colSpan={4}>
+                No donations yet. They&rsquo;ll appear here as they come in.
+              </EmptyRow>
+            ) : (
+              donationList.map((d) => (
+                <tr key={d.id}>
+                  <Td>{dateShort(d.received_at)}</Td>
+                  <Td>
+                    {d.is_anonymous ? (
+                      <span className="text-ink-soft">
+                        Anonymous
+                        {d.donor_name ? (
+                          <span className="block text-xs text-ink-faint">
+                            {d.donor_name} — asked not to be named publicly
+                          </span>
+                        ) : null}
+                      </span>
+                    ) : (
+                      <>
+                        <span className="font-medium">
+                          {d.donor_name ?? "No name given"}
+                        </span>
+                        {d.email && (
+                          <span className="block text-xs text-ink-faint">
+                            {d.email}
+                          </span>
+                        )}
+                      </>
+                    )}
+                  </Td>
+                  <Td>
+                    {d.message ? (
+                      <span className="text-sm text-ink-soft">{d.message}</span>
+                    ) : (
+                      <span className="text-ink-faint">—</span>
+                    )}
+                  </Td>
+                  <Td align="right">
+                    <span className="font-medium">{moneyExact(d.amount_cents)}</span>
+                  </Td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </Table>
+        {donationList.length > 0 && (
+          <div className="border-t border-tan/20 px-5 py-3.5 text-right">
+            <span className="eyebrow !text-[0.6rem] text-bark">Total raised</span>
+            <span className="ml-3 font-display text-xl font-semibold text-olive-deep">
+              {moneyExact(donations)}
+            </span>
+          </div>
+        )}
       </Card>
 
       <p className="text-xs text-ink-faint">

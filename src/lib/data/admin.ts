@@ -5,7 +5,7 @@ import {
   sampleAppointments,
   sampleBookings,
   sampleContacts,
-  sampleDonationTotalCents,
+  sampleDonations,
   sampleExpenses,
   sampleInvoices,
   sampleLeases,
@@ -26,6 +26,7 @@ import type {
   LeaseRow,
   TaskRow,
   UnitRow,
+  DonationRow,
 } from "./types";
 
 /**
@@ -127,6 +128,17 @@ export async function getExpenses(): Promise<ExpenseRow[]> {
   return (data as ExpenseRow[]) ?? [];
 }
 
+export async function getDonations(): Promise<DonationRow[]> {
+  if (isDemoMode) return sampleDonations;
+  const supabase = await getServerSupabase();
+  if (!supabase) return [];
+  const { data } = await supabase
+    .from("donations")
+    .select("*")
+    .order("received_at", { ascending: false });
+  return (data as DonationRow[]) ?? [];
+}
+
 export async function getAppointments(): Promise<AppointmentRow[]> {
   if (isDemoMode) return sampleAppointments;
   const supabase = await getServerSupabase();
@@ -219,17 +231,25 @@ export async function getMonthlyTotals() {
 
 /** Everything the dashboard needs, in one call. */
 export async function getDashboard() {
-  const [invoices, bookings, appointments, tasks, requests, expenses, contacts, monthly] =
-    await Promise.all([
-      getInvoices(),
-      getBookings(),
-      getAppointments(),
-      getTasks(),
-      getCounsellingRequests(),
-      getExpenses(),
-      getContacts(),
-      getMonthlyTotals(),
-    ]);
+  const [
+    invoices,
+    bookings,
+    appointments,
+    tasks,
+    requests,
+    expenses,
+    contacts,
+    monthly,
+  ] = await Promise.all([
+    getInvoices(),
+    getBookings(),
+    getAppointments(),
+    getTasks(),
+    getCounsellingRequests(),
+    getExpenses(),
+    getContacts(),
+    getMonthlyTotals(),
+  ]);
 
   const now = new Date();
   const monthStart = startOfMonth(now);
@@ -271,7 +291,6 @@ export async function getDashboard() {
     openTasks,
     newRequests,
     contactCount: contacts.length,
-    donationTotalCents: isDemoMode ? sampleDonationTotalCents : 0,
   };
 }
 

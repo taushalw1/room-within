@@ -4,6 +4,7 @@ import type {
   BookingRow,
   ContactRow,
   CounsellingRequestRow,
+  DonationRow,
   ExpenseRow,
   InvoiceRow,
   LeaseRow,
@@ -134,5 +135,51 @@ export function sampleMonthlyTotals() {
   return months;
 }
 
-export const sampleDonationTotalCents = 4_285_000;
+export const sampleDonations: DonationRow[] = [
+  {
+    id: "don-1",
+    donor_name: "The Wiebe family",
+    email: "wiebe@example.com",
+    amount_cents: 250_000,
+    is_anonymous: false,
+    message: "For the windows on the south side. Our grandmother worked in that building.",
+    stripe_session_id: null,
+    received_at: subDays(new Date(), 3).toISOString(),
+  },
+  {
+    id: "don-2",
+    donor_name: null,
+    email: "friend@example.com",
+    amount_cents: 100_000,
+    is_anonymous: true,
+    message: null,
+    stripe_session_id: null,
+    received_at: subDays(new Date(), 11).toISOString(),
+  },
+  {
+    id: "don-3",
+    donor_name: "Grassy Lake Ag Society",
+    email: "office@example.com",
+    amount_cents: 500_000,
+    is_anonymous: false,
+    message: "Voted at our March meeting. Let us know when you need hands.",
+    stripe_session_id: null,
+    received_at: subDays(new Date(), 26).toISOString(),
+  },
+  {
+    id: "don-4",
+    donor_name: "Marlene",
+    email: "marlene@example.com",
+    amount_cents: 2_500,
+    is_anonymous: false,
+    message: "It isn't much but I wanted to be part of it.",
+    stripe_session_id: null,
+    received_at: subDays(new Date(), 40).toISOString(),
+  },
+];
+
+export const sampleDonationTotalCents = sampleDonations.reduce(
+  (s, d) => s + d.amount_cents,
+  0,
+);
 export const sampleRecentPaymentDate = subDays(new Date(), 2).toISOString();

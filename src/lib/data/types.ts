@@ -172,6 +172,17 @@ export type TaskRow = {
   created_at: string;
 };
 
+export type DonationRow = {
+  id: string;
+  donor_name: string | null;
+  email: string | null;
+  amount_cents: number;
+  is_anonymous: boolean;
+  message: string | null;
+  stripe_session_id: string | null;
+  received_at: string;
+};
+
 export type ExpenseRow = {
   id: string;
   incurred_on: string;
