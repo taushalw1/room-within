@@ -7,6 +7,12 @@ import { isDemoMode } from "@/lib/demo";
 import { getServerSupabase } from "@/lib/supabase/server";
 import { toCents } from "@/lib/format";
 import { slugify, uniqueSlug } from "@/lib/slug";
+import {
+  sendBookingConfirmed,
+  sendCounsellingRequestAck,
+  sendInvoiceReminder,
+  sendWelcome,
+} from "@/lib/email/send";
 
 export type ActionResult = { ok: boolean; message: string };
 
@@ -324,4 +330,74 @@ export async function updateRates(
   revalidateRateViews();
   revalidatePath("/counselling");
   return { ok: true, message: "Saved." };
+}
+
+/* ---------------------------------------------------------------------------
+   Previewing the emails
+   --------------------------------------------------------------------------- */
+
+/**
+ * Sends one of the real templates to the signed-in admin, filled with example
+ * details.
+ *
+ * Deliberately uses the same functions the app sends for real, rather than a
+ * copy — a preview that renders its own version of the template proves
+ * nothing about what tenants actually receive.
+ */
+export async function sendTestEmail(
+  _prev: ActionResult | null,
+  formData: FormData,
+): Promise<ActionResult> {
+  const admin = await requireAdmin();
+  if (isDemoMode) {
+    return { ok: false, message: "Demo mode — connect the database first." };
+  }
+  if (!admin.email) {
+    return { ok: false, message: "Your account has no email address." };
+  }
+
+  const which = String(formData.get("template") ?? "welcome");
+  const to = admin.email;
+  const name = admin.fullName ?? "there";
+
+  const inThreeDays = new Date(Date.now() + 3 * 86_400_000)
+    .toISOString()
+    .slice(0, 10);
+
+  const result =
+    which === "reminder"
+      ? await sendInvoiceReminder({
+          to,
+          name,
+          invoiceNumber: "RW-000123",
+          description: "Office 1 — monthly rent",
+          dueDate: inThreeDays,
+          balanceCents: 65000,
+          daysOverdue: 0,
+        })
+      : which === "overdue"
+        ? await sendInvoiceReminder({
+            to,
+            name,
+            invoiceNumber: "RW-000123",
+            description: "Office 1 — monthly rent",
+            dueDate: new Date(Date.now() - 7 * 86_400_000)
+              .toISOString()
+              .slice(0, 10),
+            balanceCents: 65000,
+            daysOverdue: 7,
+          })
+        : which === "booking"
+          ? await sendBookingConfirmed({
+              to,
+              name,
+              roomName: "The Gathering Room",
+              when: "Sat 12 Sep · 2:00–5:00 PM",
+            })
+          : which === "counselling"
+            ? await sendCounsellingRequestAck({ to, name })
+            : await sendWelcome({ to, name });
+
+  if (!result.ok) return { ok: false, message: result.message };
+  return { ok: true, message: `Sent to ${to}. Give it a minute.` };
 }

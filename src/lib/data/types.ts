@@ -7,6 +7,17 @@
 
 export type Role = "admin" | "tenant" | "member";
 
+export type ProfileRow = {
+  id: string;
+  contact_id: string | null;
+  full_name: string | null;
+  email: string | null;
+  role: Role;
+  /** When the welcome email went out. Null means it hasn't. */
+  welcomed_at: string | null;
+  created_at: string;
+};
+
 export type RoomRow = {
   id: string;
   name: string;

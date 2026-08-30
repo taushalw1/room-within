@@ -1,4 +1,5 @@
 import { AddPanel } from "@/components/admin/AddPanel";
+import { TestEmailButtons } from "@/components/admin/TestEmailButtons";
 import { RatesForm } from "@/components/admin/RatesForm";
 import { RoomForm } from "@/components/admin/RoomForm";
 import { RoomRateRow } from "@/components/admin/RoomRateRow";
@@ -7,14 +8,16 @@ import { UnitRateRow } from "@/components/admin/UnitRateRow";
 import { Card, CardHeader, Table, Td, Th } from "@/components/ui/Table";
 import { getRooms } from "@/lib/data/public";
 import { getRates, getUnits } from "@/lib/data/admin";
+import { getCurrentUser } from "@/lib/auth";
 import { money } from "@/lib/format";
 import { site } from "@/lib/site";
 
 export default async function SettingsPage() {
-  const [rooms, units, rates] = await Promise.all([
+  const [rooms, units, rates, user] = await Promise.all([
     getRooms(),
     getUnits(),
     getRates(),
+    getCurrentUser(),
   ]);
 
   return (
@@ -114,6 +117,16 @@ export default async function SettingsPage() {
               <dd>{site.email}</dd>
             </div>
           </dl>
+        </div>
+      </Card>
+
+      <Card>
+        <CardHeader
+          title="Preview your emails"
+          description="Exactly what people receive, sent to you."
+        />
+        <div className="px-5 py-5">
+          <TestEmailButtons address={user?.email ?? null} />
         </div>
       </Card>
 

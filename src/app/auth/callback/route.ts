@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import type { EmailOtpType } from "@supabase/supabase-js";
 import { getServerSupabase } from "@/lib/supabase/server";
+import { sendWelcomeOnce } from "@/lib/email/welcome";
 
 /**
  * Where the emailed sign-in link lands.
@@ -46,17 +47,37 @@ export async function GET(request: NextRequest) {
 
   if (tokenHash && type) {
     const { error } = await supabase.auth.verifyOtp({ type, token_hash: tokenHash });
-    if (!error) return NextResponse.redirect(`${origin}${safeNext}`);
+    if (!error) {
+      await welcomeIfNew(supabase);
+      return NextResponse.redirect(`${origin}${safeNext}`);
+    }
     return fail(error.message.toLowerCase().includes("expired") ? "expired" : "invalid");
   }
 
   if (code) {
     const { error } = await supabase.auth.exchangeCodeForSession(code);
-    if (!error) return NextResponse.redirect(`${origin}${safeNext}`);
+    if (!error) {
+      await welcomeIfNew(supabase);
+      return NextResponse.redirect(`${origin}${safeNext}`);
+    }
     // The usual cause is a missing verifier: link opened somewhere other than
     // where it was requested, or a mail scanner consumed it first.
     return fail("otherbrowser");
   }
 
   return fail("nocode");
+}
+
+/**
+ * Whoever just signed in gets the welcome email if they've never had it.
+ * sendWelcomeOnce does the has-it-already check and never throws, so a mail
+ * problem can't block a sign-in.
+ */
+async function welcomeIfNew(
+  supabase: NonNullable<Awaited<ReturnType<typeof getServerSupabase>>>,
+) {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (user) await sendWelcomeOnce(user.id);
 }
