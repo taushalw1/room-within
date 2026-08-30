@@ -21,8 +21,23 @@ import { sendWelcomeOnce } from "@/lib/email/welcome";
  * On failure it sends a specific reason to /login rather than a bare bounce —
  * an unexplained return to the sign-in form reads as "nothing happened".
  */
+/**
+ * The address to send people back to.
+ *
+ * NOT request.nextUrl.origin: behind Netlify's proxy that resolves to the
+ * internal deploy host — main--roomwithin.netlify.app — which doesn't serve,
+ * so every sign-in ended at a 404. The configured site URL is the only
+ * reliable source for the public address.
+ */
+function siteOrigin(request: NextRequest) {
+  const configured = process.env.NEXT_PUBLIC_SITE_URL?.trim();
+  if (configured?.startsWith("http")) return configured.replace(/[/]+$/, "");
+  return request.nextUrl.origin;
+}
+
 export async function GET(request: NextRequest) {
-  const { searchParams, origin } = request.nextUrl;
+  const { searchParams } = request.nextUrl;
+  const origin = siteOrigin(request);
 
   const code = searchParams.get("code");
   const tokenHash = searchParams.get("token_hash");
