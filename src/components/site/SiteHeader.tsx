@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { Menu, X } from "lucide-react";
 import { LogoLockup } from "@/components/brand/Logo";
-import { ButtonLink } from "@/components/ui/Button";
+import { AccountNav } from "@/components/site/AccountNav";
 import { Container } from "@/components/ui/Section";
 import { nav, site } from "@/lib/site";
 import { cn } from "@/lib/cn";
@@ -48,9 +48,7 @@ export function SiteHeader() {
         </nav>
 
         <div className="hidden items-center gap-2 lg:flex">
-          <ButtonLink href="/login" variant="secondary" size="sm">
-            Sign in
-          </ButtonLink>
+          <AccountNav />
         </div>
 
         {/* Mobile toggle */}
@@ -84,15 +82,7 @@ export function SiteHeader() {
                 {item.label}
               </Link>
             ))}
-            <ButtonLink
-              href="/login"
-              variant="secondary"
-              size="sm"
-              className="mt-4 self-start"
-              onClick={() => setOpen(false)}
-            >
-              Sign in
-            </ButtonLink>
+            <AccountNav className="mt-4 self-start" />
           </Container>
         </nav>
       )}

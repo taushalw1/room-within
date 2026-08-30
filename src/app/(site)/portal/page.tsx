@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Container, Section } from "@/components/ui/Section";
+import { ButtonLink } from "@/components/ui/Button";
 import {
   Badge,
   Card,
@@ -11,8 +12,8 @@ import {
 } from "@/components/ui/Table";
 import { requireUser } from "@/lib/auth";
 import { getServerSupabase } from "@/lib/supabase/server";
-import { dateShort, moneyExact } from "@/lib/format";
-import type { InvoiceRow } from "@/lib/data/types";
+import { dateShort, dateTimeRange, moneyExact } from "@/lib/format";
+import type { BookingRow, InvoiceRow } from "@/lib/data/types";
 import { site } from "@/lib/site";
 
 export const metadata: Metadata = {
@@ -24,6 +25,7 @@ export default async function PortalPage() {
   const user = await requireUser("/portal");
 
   let invoices: InvoiceRow[] = [];
+  let bookings: (BookingRow & { rooms: { name: string } | null })[] = [];
 
   if (user.contactId) {
     const supabase = await getServerSupabase();
@@ -37,6 +39,20 @@ export default async function PortalPage() {
     invoices = (data as InvoiceRow[]) ?? [];
   }
 
+  {
+    const supabase = await getServerSupabase();
+    // Row-level security matches on the signed-in email, so this returns only
+    // their own bookings without needing a filter here.
+    const { data } = (await supabase
+      ?.from("bookings")
+      .select("*, rooms:room_id (name)")
+      .gte("ends_at", new Date().toISOString())
+      .neq("status", "cancelled")
+      .order("starts_at")) ?? { data: null };
+
+    bookings = (data as typeof bookings) ?? [];
+  }
+
   const owing = invoices
     .filter((i) => i.state === "overdue" || i.state === "outstanding")
     .reduce((s, i) => s + i.balance_cents, 0);
@@ -44,12 +60,65 @@ export default async function PortalPage() {
   return (
     <Section tint="cream">
       <Container>
-        <header className="max-w-2xl">
-          <h1 className="text-3xl">Your account</h1>
-          <p className="mt-2 text-ink-soft">
-            Signed in as {user.email}. Here&rsquo;s everything invoiced to you.
-          </p>
+        <header className="flex flex-wrap items-end justify-between gap-4">
+          <div className="max-w-2xl">
+            <h1 className="text-3xl">
+              Hello{user.fullName ? `, ${user.fullName.split(" ")[0]}` : ""}
+            </h1>
+            <p className="mt-2 text-ink-soft">
+              Signed in as {user.email}.
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <ButtonLink href="/book" size="sm">
+              Book a room
+            </ButtonLink>
+            <ButtonLink href="/calendar" variant="secondary" size="sm">
+              What&rsquo;s on
+            </ButtonLink>
+          </div>
         </header>
+
+        <Card className="mt-8">
+          <CardHeader
+            title="Your bookings"
+            description="Rooms you have coming up."
+          />
+          <Table>
+            <thead>
+              <tr>
+                <Th>When</Th>
+                <Th>Room</Th>
+                <Th>What</Th>
+                <Th align="right">Status</Th>
+              </tr>
+            </thead>
+            <tbody>
+              {bookings.length === 0 ? (
+                <EmptyRow colSpan={4}>
+                  Nothing booked yet.{" "}
+                  <a href="/book" className="text-burgundy underline-offset-4 hover:underline">
+                    Book a room
+                  </a>
+                  .
+                </EmptyRow>
+              ) : (
+                bookings.map((b) => (
+                  <tr key={b.id}>
+                    <Td>{dateTimeRange(b.starts_at, b.ends_at)}</Td>
+                    <Td>{b.rooms?.name ?? "—"}</Td>
+                    <Td>{b.title}</Td>
+                    <Td align="right">
+                      <Badge tone={b.status === "confirmed" ? "good" : "warn"}>
+                        {b.status}
+                      </Badge>
+                    </Td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </Table>
+        </Card>
 
         {owing > 0 && (
           <p className="mt-6 inline-block rounded-[var(--radius-card)] border border-burgundy/25 bg-blush/40 px-5 py-3 text-sm">
