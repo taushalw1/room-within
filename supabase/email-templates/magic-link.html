@@ -1,0 +1,94 @@
+<!--
+  Supabase → Authentication → Email Templates → "Magic link or OTP"
+
+  Paste this whole file into the Body box (Source view), replacing what's
+  there. Subject: Your sign-in link — Room Within Community
+
+  Two things make this work:
+
+  1. The link uses {{ .TokenHash }}, not {{ .ConfirmationURL }}. The default
+     ConfirmationURL carries a browser-specific credential, so a link requested
+     on a laptop and opened on a phone fails. TokenHash is verified server-side
+     and works wherever it's opened — which is how people actually read email.
+
+  2. The markup matches the app's own emails: same cream and olive, same logo,
+     nested tables with inline styles because email clients have no flexbox and
+     Outlook renders through Word.
+
+  {{ .SiteURL }} comes from Authentication → URL Configuration, so that must
+  read https://roomwithin.ca.
+-->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>Your sign-in link</title>
+</head>
+<body style="margin:0;padding:0;background:#f3eee0;">
+  <div style="display:none;max-height:0;overflow:hidden;opacity:0;mso-hide:all;">
+    Your link to sign in — it works once and lasts an hour.&#8203;&#8203;&#8203;&#8203;&#8203;&#8203;&#8203;&#8203;&#8203;&#8203;
+  </div>
+
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#f3eee0;">
+    <tr><td align="center" style="padding:32px 16px;">
+
+      <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="width:600px;max-width:100%;background:#faf6ec;border:1px solid #e6dcc6;border-radius:8px;">
+
+        <tr><td align="center" style="padding:34px 32px 0;">
+          <img src="https://roomwithin.ca/logo-lockup.png" width="176" alt="Room Within Community"
+               style="display:block;border:0;width:176px;height:auto;">
+        </td></tr>
+
+        <tr><td align="center" style="padding:26px 40px 0;">
+          <h1 style="margin:0;font-family:Georgia,'Times New Roman',serif;font-size:25px;line-height:1.25;font-weight:normal;color:#414d30;">Your sign-in link</h1>
+        </td></tr>
+
+        <tr><td style="padding:22px 40px 0;">
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
+            <td style="border-top:1px solid #e6dcc6;font-size:0;line-height:0;">&nbsp;</td>
+          </tr></table>
+        </td></tr>
+
+        <tr><td style="padding:22px 40px 0;font-family:Georgia,'Times New Roman',serif;font-size:16px;line-height:1.65;color:#3a372f;">
+          <p style="margin:0 0 14px;">Hello,</p>
+          <p style="margin:0 0 14px;">Use the button below to sign in. There's no password to remember — this link is all you need.</p>
+        </td></tr>
+
+        <tr><td align="center" style="padding:28px 40px 4px;">
+          <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+            <td align="center" bgcolor="#5e6e45" style="border-radius:5px;">
+              <a href="{{ .SiteURL }}/auth/callback?token_hash={{ .TokenHash }}&type=email&next=/portal"
+                 style="display:inline-block;padding:13px 30px;font-family:Georgia,'Times New Roman',serif;font-size:12px;letter-spacing:2.4px;text-transform:uppercase;color:#faf6ec;text-decoration:none;">Sign in</a>
+            </td>
+          </tr></table>
+        </td></tr>
+
+        <tr><td style="padding:22px 40px 0;font-family:Georgia,'Times New Roman',serif;font-size:15px;line-height:1.6;color:#6b6659;">
+          <p style="margin:0 0 14px;">The link works once and expires after an hour. If it's stopped working, just ask for another from the sign-in page.</p>
+          <p style="margin:0;">If you didn't ask to sign in, you can ignore this — nobody can get in without this link.</p>
+        </td></tr>
+
+        <tr><td style="padding:34px 40px 32px;">
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+            <tr><td style="border-top:1px solid #e6dcc6;padding-top:20px;font-family:Georgia,'Times New Roman',serif;font-size:13px;line-height:1.6;color:#6b6659;">
+              <strong style="color:#414d30;">Room Within Community</strong><br>
+              105 Chamberlain Ave N, Grassy Lake, AB T0K 0Z0<br>
+              <a href="mailto:roomwithincommunity@gmail.com" style="color:#7c2e3e;text-decoration:none;">roomwithincommunity@gmail.com</a>
+            </td></tr>
+          </table>
+        </td></tr>
+
+      </table>
+
+      <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="width:600px;max-width:100%;">
+        <tr><td align="center" style="padding:18px 24px 0;font-family:Georgia,'Times New Roman',serif;font-size:12px;line-height:1.6;color:#9a9281;">
+          A place to heal. A space to belong.
+        </td></tr>
+      </table>
+
+    </td></tr>
+  </table>
+</body>
+</html>
