@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { Building2 } from "lucide-react";
 import { AddPanel } from "@/components/admin/AddPanel";
+import { GenerateRentButton } from "@/components/admin/GenerateRentButton";
+import { InvoiceForm } from "@/components/admin/InvoiceForm";
 import { AddTenantForm } from "@/components/admin/AddTenantForm";
 import { Stat } from "@/components/admin/Stat";
 import {
@@ -21,6 +23,7 @@ import { TenancyRow } from "@/components/admin/TenancyRow";
 import {
   getAllLeases,
   getContactNameMap,
+  getContacts,
   getInvoices,
   getUnits,
 } from "@/lib/data/admin";
@@ -49,11 +52,12 @@ export default async function RentalsPage({
 }) {
   const { filter = "all" } = await searchParams;
 
-  const [invoices, units, allLeases, contacts] = await Promise.all([
+  const [invoices, units, allLeases, contacts, contactList] = await Promise.all([
     getInvoices(),
     getUnits(),
     getAllLeases(),
     getContactNameMap(),
+    getContacts(),
   ]);
 
   const leases = allLeases.filter((l) => l.status === "active");
@@ -188,12 +192,21 @@ export default async function RentalsPage({
         </Card>
       )}
 
+      <AddPanel
+        label="Create an invoice"
+        description="A one-off charge. Monthly rent is raised automatically."
+      >
+        <InvoiceForm contacts={contactList} />
+      </AddPanel>
+
       {/* ---------- Invoices ---------- */}
       <Card>
         <CardHeader
           title="Payments"
           description="Everything invoiced — rent, room bookings and sessions."
           action={
+            <div className="flex flex-wrap items-center gap-3">
+              <GenerateRentButton />
             <div className="flex flex-wrap gap-1">
               {FILTERS.map((f) => (
                 <Link
@@ -209,6 +222,7 @@ export default async function RentalsPage({
                   {f.label}
                 </Link>
               ))}
+            </div>
             </div>
           }
         />

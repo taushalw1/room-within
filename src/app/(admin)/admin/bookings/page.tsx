@@ -1,5 +1,6 @@
 import { CalendarCheck, CircleDollarSign, Hourglass } from "lucide-react";
 import { BookingDecision } from "@/components/admin/BookingActions";
+import { BookingRow } from "@/components/admin/BookingRow";
 import { Stat } from "@/components/admin/Stat";
 import {
   Badge,
@@ -135,37 +136,20 @@ export default async function BookingsPage() {
               <Th>Who</Th>
               <Th align="right">Total</Th>
               <Th align="right">Paid</Th>
+              <Th align="right" />
             </tr>
           </thead>
           <tbody>
             {upcoming.length === 0 ? (
-              <EmptyRow colSpan={6}>Nothing booked yet.</EmptyRow>
+              <EmptyRow colSpan={7}>Nothing booked yet.</EmptyRow>
             ) : (
               upcoming.map((b) => (
-                <tr key={b.id}>
-                  <Td>{dateTimeRange(b.starts_at, b.ends_at)}</Td>
-                  <Td>{roomNames.get(b.room_id) ?? "—"}</Td>
-                  <Td>
-                    {b.title}
-                    {b.is_public && (
-                      <span className="ml-2 align-middle">
-                        <Badge tone="info">on calendar</Badge>
-                      </span>
-                    )}
-                  </Td>
-                  <Td>
-                    {b.booker_name}
-                    <span className="block text-xs text-ink-faint">
-                      {b.booker_email}
-                    </span>
-                  </Td>
-                  <Td align="right">{money(b.total_cents)}</Td>
-                  <Td align="right">
-                    <Badge tone={b.is_paid ? "good" : "warn"}>
-                      {b.is_paid ? "paid" : "unpaid"}
-                    </Badge>
-                  </Td>
-                </tr>
+                <BookingRow
+                  key={b.id}
+                  booking={b}
+                  roomName={roomNames.get(b.room_id) ?? "—"}
+                  rooms={rooms}
+                />
               ))
             )}
           </tbody>

@@ -9,6 +9,8 @@ import {
   Wrench,
 } from "lucide-react";
 import { Botanical } from "@/components/brand/Botanical";
+import { DonateForm } from "@/components/site/DonateForm";
+import { Card, CardHeader } from "@/components/ui/Table";
 import { ButtonLink } from "@/components/ui/Button";
 import { Container, Section, SectionHeading } from "@/components/ui/Section";
 import { developmentPlan } from "@/content/offerings";
@@ -93,11 +95,27 @@ export default function SupportPage() {
             </div>
           </div>
 
-          <div className="mt-10 flex flex-wrap justify-center gap-3">
-            <ButtonLink href={`mailto:${site.email}?subject=${encodeURIComponent("I'd like to help")}`} size="lg">
-              <Mail className="h-4 w-4" aria-hidden />
-              Get in touch
-            </ButtonLink>
+          <div className="mx-auto mt-12 max-w-xl">
+            <Card>
+              <CardHeader
+                title="Make a donation"
+                description="Every contribution goes into the purchase and the repairs."
+              />
+              <div className="px-6 py-6">
+                <DonateForm />
+              </div>
+            </Card>
+
+            <p className="mt-6 text-sm text-ink-soft">
+              Would rather help another way, or give without a card?{" "}
+              <a
+                href={`mailto:${site.email}?subject=${encodeURIComponent("I'd like to help")}`}
+                className="text-burgundy underline-offset-4 hover:underline"
+              >
+                Get in touch
+              </a>{" "}
+              — letters of support, skills and time matter just as much.
+            </p>
           </div>
         </Container>
       </section>

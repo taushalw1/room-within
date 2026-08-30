@@ -4,9 +4,10 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { requireAdmin } from "@/lib/auth";
 import { isDemoMode } from "@/lib/demo";
-import { getServerSupabase } from "@/lib/supabase/server";
+import { getServerSupabase, getServiceSupabase } from "@/lib/supabase/server";
 import { sendInvoiceReminder } from "@/lib/email/send";
 import { toCents } from "@/lib/format";
+import { generateRentInvoices } from "@/lib/invoices";
 
 export type ActionResult = { ok: boolean; message: string };
 
@@ -535,4 +536,110 @@ export async function deleteLease(
 
   revalidatePeopleViews();
   return { ok: true, message: "Lease deleted." };
+}
+
+/* ---------------------------------------------------------------------------
+   Creating invoices
+   --------------------------------------------------------------------------- */
+
+const invoiceSchema = z.object({
+  contactId: z.string().min(1, "Choose who this is for."),
+  kind: z.enum(["rent", "booking", "counselling", "deposit", "other"]),
+  description: z.string().trim().min(2, "What is this for?"),
+  amount: z.coerce.number().positive("Enter an amount greater than zero."),
+  tax: z.coerce.number().min(0).optional(),
+  dueDate: z.string().regex(/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/, "Choose a due date."),
+  notes: z.string().trim().max(2000).optional(),
+});
+
+/**
+ * Bill someone for anything — a one-off repair, a deposit, a session.
+ *
+ * Monthly rent is generated separately and shouldn't be raised here, or the
+ * tenant gets billed twice for the same month.
+ */
+export async function createInvoice(
+  _prev: ActionResult | null,
+  formData: FormData,
+): Promise<ActionResult> {
+  await requireAdmin();
+  if (isDemoMode) return DEMO_RESULT;
+
+  const parsed = invoiceSchema.safeParse({
+    contactId: formData.get("contactId"),
+    kind: formData.get("kind") || "other",
+    description: formData.get("description"),
+    amount: formData.get("amount"),
+    tax: formData.get("tax") || 0,
+    dueDate: formData.get("dueDate"),
+    notes: formData.get("notes"),
+  });
+
+  if (!parsed.success) {
+    return { ok: false, message: parsed.error.issues[0].message };
+  }
+
+  const v = parsed.data;
+  const supabase = await getServerSupabase();
+  if (!supabase) return { ok: false, message: "No database connection." };
+
+  const { data, error } = await supabase
+    .from("invoices")
+    .insert({
+      contact_id: v.contactId,
+      kind: v.kind,
+      description: v.description,
+      issue_date: new Date().toISOString().slice(0, 10),
+      due_date: v.dueDate,
+      amount_cents: toCents(v.amount),
+      tax_cents: toCents(v.tax ?? 0),
+      status: "sent",
+      notes: v.notes || null,
+    })
+    .select("number")
+    .single();
+
+  if (error) return { ok: false, message: `Couldn't save that: ${error.message}` };
+
+  revalidatePath("/admin/rentals");
+  revalidatePath("/admin/finance");
+  revalidatePath("/admin");
+  revalidatePath("/portal");
+
+  return {
+    ok: true,
+    message: `Invoice ${data?.number ?? ""} created. Reminders will go out on their own.`,
+  };
+}
+
+/**
+ * Raise this month's rent by hand, rather than waiting for the nightly run.
+ * Safe to press twice — a duplicate is refused by the database.
+ */
+export async function generateRentNow(): Promise<ActionResult> {
+  await requireAdmin();
+  if (isDemoMode) return DEMO_RESULT;
+
+  const supabase = getServiceSupabase();
+  if (!supabase) return { ok: false, message: "No database connection." };
+
+  const result = await generateRentInvoices(supabase);
+
+  revalidatePath("/admin/rentals");
+  revalidatePath("/admin/finance");
+  revalidatePath("/admin");
+
+  if (result.errors.length) {
+    return { ok: false, message: result.errors[0] };
+  }
+  if (result.created === 0) {
+    return {
+      ok: true,
+      message: `Nothing to raise — ${result.periods.join(" and ")} already invoiced.`,
+    };
+  }
+  return {
+    ok: true,
+    message: `Created ${result.created} rent invoice${result.created === 1 ? "" : "s"} for ${result.periods.join(" and ")}.`,
+  };
 }

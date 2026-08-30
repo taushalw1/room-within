@@ -140,8 +140,12 @@ export async function POST(request: Request) {
 
     if (kind === "donation") {
       await supabase.from("donations").insert({
-        donor_name: session.customer_details?.name ?? null,
-        email: session.customer_details?.email ?? null,
+        // The name comes from our own form. Stripe Checkout doesn't ask for
+        // one unless billing address collection is on, so customer_details is
+        // only a fallback.
+        donor_name:
+          session.metadata?.donor_name || session.customer_details?.name || null,
+        email: session.customer_email ?? session.customer_details?.email ?? null,
         amount_cents: session.amount_total ?? 0,
         is_anonymous: session.metadata?.anonymous === "true",
         message: session.metadata?.message ?? null,
