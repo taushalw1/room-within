@@ -10,7 +10,8 @@
     "start": "next start",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
-    "check:email": "node scripts/check-email.mjs"
+    "check:email": "node scripts/check-email.mjs",
+    "push:templates": "node scripts/push-email-templates.mjs"
   },
   "dependencies": {
     "@netlify/plugin-nextjs": "^5.15.13",
