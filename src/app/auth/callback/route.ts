@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import type { EmailOtpType } from "@supabase/supabase-js";
 import { getServerSupabase } from "@/lib/supabase/server";
 import { sendWelcomeOnce } from "@/lib/email/welcome";
+import { linkContact, nameIsMissing } from "@/lib/profile";
 
 /**
  * Where the emailed sign-in link lands.
@@ -63,8 +64,7 @@ export async function GET(request: NextRequest) {
   if (tokenHash && type) {
     const { error } = await supabase.auth.verifyOtp({ type, token_hash: tokenHash });
     if (!error) {
-      await welcomeIfNew(supabase);
-      return NextResponse.redirect(`${origin}${safeNext}`);
+      return NextResponse.redirect(await afterSignIn(supabase, origin, safeNext));
     }
     return fail(error.message.toLowerCase().includes("expired") ? "expired" : "invalid");
   }
@@ -72,8 +72,7 @@ export async function GET(request: NextRequest) {
   if (code) {
     const { error } = await supabase.auth.exchangeCodeForSession(code);
     if (!error) {
-      await welcomeIfNew(supabase);
-      return NextResponse.redirect(`${origin}${safeNext}`);
+      return NextResponse.redirect(await afterSignIn(supabase, origin, safeNext));
     }
     // The usual cause is a missing verifier: link opened somewhere other than
     // where it was requested, or a mail scanner consumed it first.
@@ -84,15 +83,36 @@ export async function GET(request: NextRequest) {
 }
 
 /**
- * Whoever just signed in gets the welcome email if they've never had it.
- * sendWelcomeOnce does the has-it-already check and never throws, so a mail
- * problem can't block a sign-in.
+ * Everything that happens once a sign-in succeeds.
+ *
+ * Links the account to a contact record — without it the portal shows no
+ * invoices at all, because that query is skipped when there's no contact to
+ * filter on — sends the welcome email if they've never had one, and sends
+ * anyone still without a real name to /welcome to give one.
  */
-async function welcomeIfNew(
+async function afterSignIn(
   supabase: NonNullable<Awaited<ReturnType<typeof getServerSupabase>>>,
+  origin: string,
+  safeNext: string,
 ) {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (user) await sendWelcomeOnce(user.id);
+
+  if (!user) return `${origin}${safeNext}`;
+
+  await linkContact(user.id, user.email ?? null);
+  await sendWelcomeOnce(user.id);
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("full_name")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  if (nameIsMissing(profile?.full_name as string | null)) {
+    return `${origin}/welcome?next=${encodeURIComponent(safeNext)}`;
+  }
+
+  return `${origin}${safeNext}`;
 }

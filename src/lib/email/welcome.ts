@@ -1,5 +1,6 @@
 import { getServiceSupabase } from "@/lib/supabase/server";
 import { sendWelcome } from "@/lib/email/send";
+import { nameIsMissing } from "@/lib/profile";
 
 /**
  * Send the welcome email, but only ever once per person.
@@ -31,7 +32,10 @@ export async function sendWelcomeOnce(userId: string) {
 
     const result = await sendWelcome({
       to: data.email as string,
-      name: (data.full_name as string) ?? null,
+      // At this point the name is usually still the email address, since
+      // /welcome hasn't been filled in yet. Better a plain "Hello," than
+      // "Hello tyler+4@gmail.com,".
+      name: nameIsMissing(data.full_name as string) ? null : (data.full_name as string),
     });
 
     // Sending failed — release the claim so the next sign-in tries again.
