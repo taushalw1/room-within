@@ -79,6 +79,17 @@ const text = await res.text();
 if (!res.ok) {
   console.log(`  ${red("FAILED")} ${res.status}`);
   console.log(dim(`  ${text.slice(0, 500)}\n`));
+  if (res.status === 403) {
+    console.log(dim("  A 403 means the token is valid, but the Supabase account it"));
+    console.log(dim("  belongs to is not a member of the organisation that owns this"));
+    console.log(dim("  project — or is a member without admin rights."));
+    console.log(dim(""));
+    console.log(dim("  Fix: the organisation owner invites that account from the"));
+    console.log(dim("  Supabase dashboard, Organisation settings, Team, as Owner or"));
+    console.log(dim("  Administrator. Then this works with no change here. Nothing on"));
+    console.log(dim("  the live site is affected — this only blocks setup tooling."));
+    console.log();
+  }
   process.exit(1);
 }
 

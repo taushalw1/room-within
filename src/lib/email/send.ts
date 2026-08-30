@@ -31,12 +31,34 @@ function client() {
 
 export type SendResult = { ok: boolean; message: string };
 
+/**
+ * Local preview escape hatch.
+ *
+ * When `EMAIL_PREVIEW_DIR` is set on a development machine, messages are
+ * written to disk as HTML files instead of being sent, so the design can be
+ * looked at in a browser. Guarded on NODE_ENV as well as the variable itself,
+ * so it can never divert real mail from the live site.
+ */
+function previewDir(): string | null {
+  const dir = process.env.EMAIL_PREVIEW_DIR;
+  return dir && process.env.NODE_ENV === "development" ? dir : null;
+}
+
 async function send(opts: {
   to: string;
   subject: string;
   html: string;
   text: string;
 }): Promise<SendResult> {
+  const dir = previewDir();
+  if (dir) {
+    const { mkdirSync, writeFileSync } = await import("node:fs");
+    const slug = opts.subject.replace(/[^a-z0-9]+/gi, "-").toLowerCase().slice(0, 60);
+    mkdirSync(dir, { recursive: true });
+    writeFileSync(`${dir}/${slug}.html`, opts.html);
+    return { ok: true, message: `Written to ${dir} for preview — not sent.` };
+  }
+
   const resend = client();
   if (!resend) {
     return {
@@ -369,5 +391,64 @@ export async function notifyAdmin(opts: {
         : undefined,
     }),
     text: opts.bodyHtml.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim(),
+  });
+}
+
+/**
+ * Sent to a donor once Stripe confirms the payment.
+ *
+ * Two things this has to get right. It thanks them for the amount they
+ * actually gave, not a rounded or presumed figure — and it repeats, in the
+ * same breath as the amount, that Room Within is not a registered charity.
+ * Somebody filing a return next spring should not have to guess.
+ */
+export async function sendDonationThanks(opts: {
+  to: string;
+  name?: string | null;
+  amountCents: number;
+}): Promise<SendResult> {
+  const greeting = opts.name ? `Hello ${opts.name},` : "Hello,";
+  const amount = moneyExact(opts.amountCents);
+
+  const body = `
+    ${P(greeting)}
+    ${P(`Thank you. Your donation of <strong>${amount}</strong> has come through, and it goes straight into buying and repairing the building — nothing is taken out along the way.`)}
+    ${NOTE(`
+      <strong style="color:#414d30;">Your donation</strong><br>
+      <span style="font-size:19px;color:#414d30;">${amount}</span><br>
+      Towards purchasing and restoring the 1905 building on Chamberlain Avenue.
+      <br><br>
+      Room Within Community is not a registered charity, so this is not a
+      tax-deductible gift and there is no charitable receipt. This email is
+      your record of it.
+    `)}
+    ${P("A building this old is mended one repair at a time, and every one of them is somebody choosing to help. We'll keep the community posted as the work goes on.")}
+    ${P("If you'd like your gift kept private, or you'd rather we didn't mention it at all, just reply and say so — that's completely fine.")}
+    ${SIGNOFF}`;
+
+  const text = `${greeting}
+
+Thank you. Your donation of ${amount} has come through, and it goes straight into buying and repairing the building.
+
+Your donation: ${amount}
+Towards purchasing and restoring the 1905 building on Chamberlain Avenue.
+
+Room Within Community is not a registered charity, so this is not a tax-deductible gift and there is no charitable receipt. This email is your record of it.
+
+If you'd like your gift kept private, just reply and say so.
+
+Warmly,
+Tausha
+${site.name}
+${site.address.oneLine}`;
+
+  return send({
+    to: opts.to,
+    subject: `Thank you — your donation of ${amount}`,
+    html: shell("Thank you", body, {
+      preview: `Your donation of ${amount} has come through.`,
+      cta: { label: "See the project", url: `${SITE_URL}/support` },
+    }),
+    text,
   });
 }

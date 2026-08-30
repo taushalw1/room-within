@@ -1,8 +1,12 @@
 import type Stripe from "stripe";
 import { getStripe } from "@/lib/stripe";
 import { getServiceSupabase } from "@/lib/supabase/server";
-import { sendBookingConfirmed } from "@/lib/email/send";
-import { dateTimeRange } from "@/lib/format";
+import {
+  notifyAdmin,
+  sendBookingConfirmed,
+  sendDonationThanks,
+} from "@/lib/email/send";
+import { dateTimeRange, moneyExact } from "@/lib/format";
 
 /**
  * Stripe webhook.
@@ -139,17 +143,47 @@ export async function POST(request: Request) {
     }
 
     if (kind === "donation") {
+      // The name comes from our own form. Stripe Checkout doesn't ask for one
+      // unless billing address collection is on, so customer_details is only a
+      // fallback.
+      const donorName =
+        session.metadata?.donor_name || session.customer_details?.name || null;
+      const donorEmail =
+        session.customer_email ?? session.customer_details?.email ?? null;
+      const amount = session.amount_total ?? 0;
+      const anonymous = session.metadata?.anonymous === "true";
+      const donorMessage = session.metadata?.message || null;
+
       await supabase.from("donations").insert({
-        // The name comes from our own form. Stripe Checkout doesn't ask for
-        // one unless billing address collection is on, so customer_details is
-        // only a fallback.
-        donor_name:
-          session.metadata?.donor_name || session.customer_details?.name || null,
-        email: session.customer_email ?? session.customer_details?.email ?? null,
-        amount_cents: session.amount_total ?? 0,
-        is_anonymous: session.metadata?.anonymous === "true",
-        message: session.metadata?.message ?? null,
+        donor_name: donorName,
+        email: donorEmail,
+        amount_cents: amount,
+        is_anonymous: anonymous,
+        message: donorMessage,
         stripe_session_id: session.id,
+      });
+
+      // Thanking them is the whole point of taking the donation politely, so
+      // it happens here rather than being left to Stripe's own receipt — which
+      // is unbranded and only sent if receipt emails are switched on.
+      if (donorEmail) {
+        await sendDonationThanks({
+          to: donorEmail,
+          name: donorName,
+          amountCents: amount,
+        });
+      }
+
+      await notifyAdmin({
+        subject: `Donation received — ${moneyExact(amount)}`,
+        heading: "A donation has come in",
+        bodyHtml: `
+          <p style="margin:0 0 14px;"><strong>${moneyExact(amount)}</strong> from
+          ${anonymous ? "someone who asked to stay anonymous" : (donorName ?? "someone who didn't leave a name")}.</p>
+          ${donorEmail ? `<p style="margin:0 0 14px;">${donorEmail}</p>` : ""}
+          ${donorMessage ? `<p style="margin:0 0 14px;">They wrote: ${donorMessage}</p>` : ""}
+          <p style="margin:0;">They've been thanked already — no need to reply unless you'd like to.</p>`,
+        ctaPath: "/admin/finance",
       });
     }
   }

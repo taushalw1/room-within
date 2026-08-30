@@ -12,7 +12,8 @@
     "typecheck": "tsc --noEmit",
     "check:email": "node scripts/check-email.mjs",
     "push:templates": "node scripts/push-email-templates.mjs",
-    "migrate": "node scripts/run-migration.mjs"
+    "migrate": "node scripts/run-migration.mjs",
+    "preview:emails": "npx --yes tsx scripts/preview-emails.mts"
   },
   "dependencies": {
     "@netlify/plugin-nextjs": "^5.15.13",

@@ -154,6 +154,30 @@ if (anonResult === "ok") {
   }
 }
 
+/*
+ * Windows keeps its own environment variables, and neither Node's --env-file
+ * nor Next.js will overwrite one that is already set. So a leftover variable
+ * from another project silently wins over .env.local, and the symptom is a
+ * puzzling 403 from something that ought to work. Say so plainly instead.
+ */
+const shadowed = Object.keys(env).filter(
+  (k) => process.env[k] && process.env[k] !== env[k],
+);
+
+if (shadowed.length) {
+  console.log();
+  console.log(dim("  Heads up — these are set on this computer as well as in"));
+  console.log(dim("  .env.local, with a different value. Windows wins, so some"));
+  console.log(dim("  tools will quietly use the wrong one:"));
+  console.log();
+  for (const k of shadowed) console.log(dim(`    ${k}`));
+  console.log();
+  console.log(dim("  To clear one, in PowerShell:"));
+  console.log(
+    dim(`    [Environment]::SetEnvironmentVariable("${shadowed[0]}", $null, "User")`),
+  );
+}
+
 console.log(
   failed
     ? `\n${red("Something's not right — see above.")}\n`
