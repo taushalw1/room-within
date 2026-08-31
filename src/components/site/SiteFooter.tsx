@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { InstallLink } from "@/components/site/InstallLink";
 import { Mail, Facebook, MapPin } from "lucide-react";
 import { LogoTile } from "@/components/brand/Logo";
 import { Container } from "@/components/ui/Section";
@@ -113,14 +114,15 @@ export function SiteFooter() {
           <p>
             © {new Date().getFullYear()} {site.name} · {site.town}
           </p>
-          <p className="flex gap-4">
+          <div className="flex flex-wrap items-center gap-4">
+            <InstallLink className="transition-colors hover:text-cream" />
             <Link href="/privacy" className="hover:text-cream">
               Privacy
             </Link>
             <Link href="/terms" className="hover:text-cream">
               Terms
             </Link>
-          </p>
+          </div>
         </div>
       </Container>
     </footer>

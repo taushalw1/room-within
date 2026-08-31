@@ -5,18 +5,20 @@ import { Download, Share, X } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 
 /**
- * Registers the service worker, and offers to put the site on the home screen.
+ * Registers the service worker, and offers once to add the site to the home
+ * screen.
  *
- * Two quite different things happen here depending on the phone:
+ * Chrome fires `beforeinstallprompt` only after the site passes its
+ * installability checks — which include having a registered service worker —
+ * so the event always arrives well after this has mounted and is listening.
  *
- *   - Android and desktop Chrome fire `beforeinstallprompt`, which gives us a
- *     real install button we can trigger.
- *   - iOS fires nothing at all and has no install API. The only way is Share →
- *     Add to Home Screen, so on iOS we can only show the instruction. Saying
- *     it plainly beats a button that does nothing.
+ * iOS fires nothing at all and gives no way to trigger the flow, so there the
+ * only honest thing is to say where the button is. The permanent link in the
+ * footer (InstallLink) covers every other case, including the phones where
+ * the event never arrives.
  *
- * Either way, the banner appears once and is dismissed for good. Nobody should
- * have to refuse the same suggestion twice.
+ * The banner appears once and is dismissed for good — nobody should have to
+ * refuse the same suggestion twice.
  */
 
 const DISMISSED = "roomwithin.install.dismissed";
@@ -28,14 +30,16 @@ type Prompt = Event & {
 
 export function InstallApp() {
   const [prompt, setPrompt] = useState<Prompt | null>(null);
-  const [showIosHint, setShowIosHint] = useState(false);
-  const [hidden, setHidden] = useState(true);
+  const [showIos, setShowIos] = useState(false);
+  const [dismissed, setDismissed] = useState(true);
 
+  // Registering the worker is what makes the site installable at all, and what
+  // lets it open with no signal.
   useEffect(() => {
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker.register("/sw.js").catch(() => {
-        // Not being able to work offline is a small loss, and never a reason
-        // to break the page.
+        // Losing offline support is a small thing, and never worth breaking
+        // the page over.
       });
     }
   }, []);
@@ -43,37 +47,34 @@ export function InstallApp() {
   useEffect(() => {
     if (localStorage.getItem(DISMISSED)) return;
 
-    // Already installed — nothing to offer.
-    const installed =
+    const standalone =
       window.matchMedia("(display-mode: standalone)").matches ||
-      ("standalone" in navigator &&
-        (navigator as Navigator & { standalone?: boolean }).standalone === true);
-    if (installed) return;
+      (navigator as Navigator & { standalone?: boolean }).standalone === true;
+    if (standalone) return;
+
+    setDismissed(false);
 
     const onPrompt = (event: Event) => {
       event.preventDefault();
       setPrompt(event as Prompt);
-      setHidden(false);
     };
-
     window.addEventListener("beforeinstallprompt", onPrompt);
 
-    // iOS: no event is coming, so decide from the browser itself.
-    const isIos = /iphone|ipad|ipod/i.test(navigator.userAgent);
-    const isSafari =
-      /safari/i.test(navigator.userAgent) && !/crios|fxios/i.test(navigator.userAgent);
-
-    if (isIos && isSafari) {
-      setShowIosHint(true);
-      setHidden(false);
-    }
+    // No event is coming on iOS, so decide from the browser itself.
+    const ua = navigator.userAgent;
+    const isIos =
+      /iphone|ipad|ipod/i.test(ua) ||
+      // iPads report as desktop Safari, so fall back to the touch test.
+      (/macintosh/i.test(ua) && navigator.maxTouchPoints > 1);
+    const isSafari = /safari/i.test(ua) && !/crios|fxios|android/i.test(ua);
+    if (isIos && isSafari) setShowIos(true);
 
     return () => window.removeEventListener("beforeinstallprompt", onPrompt);
   }, []);
 
   function dismiss() {
     localStorage.setItem(DISMISSED, "1");
-    setHidden(true);
+    setDismissed(true);
   }
 
   async function install() {
@@ -83,7 +84,8 @@ export function InstallApp() {
     dismiss();
   }
 
-  if (hidden) return null;
+  // Nothing to offer until either the event arrives or we know it is iOS.
+  if (dismissed || (!prompt && !showIos)) return null;
 
   return (
     <div className="fixed inset-x-3 bottom-3 z-50 sm:left-auto sm:right-4 sm:w-[22rem]">
@@ -99,23 +101,9 @@ export function InstallApp() {
 
         <p className="eyebrow !text-[0.6rem] text-bark">Keep us handy</p>
 
-        {showIosHint ? (
+        {prompt ? (
           <>
-            <p className="mt-2 text-sm leading-relaxed text-ink-soft">
-              Add Room Within to your home screen and it opens like an app.
-              Tap{" "}
-              <Share className="inline h-3.5 w-3.5 align-text-bottom" aria-hidden />{" "}
-              <strong>Share</strong>, then <strong>Add to Home Screen</strong>.
-            </p>
-            <div className="mt-4">
-              <Button size="sm" variant="secondary" type="button" onClick={dismiss}>
-                Got it
-              </Button>
-            </div>
-          </>
-        ) : (
-          <>
-            <p className="mt-2 text-sm leading-relaxed text-ink-soft">
+            <p className="mt-2 pr-4 text-sm leading-relaxed text-ink-soft">
               Put Room Within on your home screen. It opens like an app, and
               what&rsquo;s on still works without a signal.
             </p>
@@ -126,6 +114,28 @@ export function InstallApp() {
               </Button>
               <Button size="sm" variant="ghost" type="button" onClick={dismiss}>
                 Not now
+              </Button>
+            </div>
+          </>
+        ) : (
+          <>
+            <p className="mt-2 pr-4 text-sm leading-relaxed text-ink-soft">
+              Add Room Within to your home screen and it opens like an app. Tap{" "}
+              <Share
+                className="inline h-3.5 w-3.5 align-text-bottom"
+                aria-hidden
+              />{" "}
+              <strong>Share</strong> at the bottom of Safari, then{" "}
+              <strong>Add to Home Screen</strong>.
+            </p>
+            <div className="mt-4">
+              <Button
+                size="sm"
+                variant="secondary"
+                type="button"
+                onClick={dismiss}
+              >
+                Got it
               </Button>
             </div>
           </>
