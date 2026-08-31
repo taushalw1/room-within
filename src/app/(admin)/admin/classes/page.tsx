@@ -140,7 +140,7 @@ export default async function ClassesPage() {
           <RunButton
             action={runSessionDecisions}
             label="Confirm or cancel now"
-            icon={Wand2}
+            icon={<Wand2 className="h-3.5 w-3.5" aria-hidden />}
           />
         </div>
       </Card>

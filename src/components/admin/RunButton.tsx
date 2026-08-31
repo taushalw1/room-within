@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Loader2, type LucideIcon } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/cn";
 
@@ -18,12 +18,18 @@ type Result = { ok: boolean; message: string };
 export function RunButton({
   action,
   label,
-  icon: Icon,
+  icon,
   variant = "secondary",
 }: {
   action: () => Promise<Result>;
   label: string;
-  icon?: LucideIcon;
+  /**
+   * A rendered element, not a component. A server component cannot hand a
+   * function across the boundary into a client component, and an icon from
+   * lucide-react is a function — passing one throws at request time, which the
+   * build never catches because these pages render on demand.
+   */
+  icon?: React.ReactNode;
   variant?: "primary" | "secondary" | "ghost";
 }) {
   const [state, setState] = useState<
@@ -47,9 +53,9 @@ export function RunButton({
       >
         {state.status === "working" ? (
           <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden />
-        ) : Icon ? (
-          <Icon className="h-3.5 w-3.5" aria-hidden />
-        ) : null}
+        ) : (
+          icon
+        )}
         {label}
       </Button>
 

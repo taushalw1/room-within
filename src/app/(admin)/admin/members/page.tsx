@@ -104,7 +104,7 @@ export default async function MembersPage() {
           <RunButton
             action={grantMonthlyCredits}
             label="Give out this month's credits"
-            icon={Coins}
+            icon={<Coins className="h-3.5 w-3.5" aria-hidden />}
           />
           <p className="mt-2.5 text-xs text-ink-faint">
             This runs by itself on the first of each month. Pressing it again is

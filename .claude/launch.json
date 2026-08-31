@@ -10,6 +10,16 @@
       // invalidating the preview link. autoPort stays on as a fallback.
       "port": 4300,
       "autoPort": true
+    },
+    {
+      // Demo mode: no database, no login, sample content. The only way to look
+      // at an admin page locally, since the real sign-in link points at the
+      // live site.
+      "name": "Room Within (demo)",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev:demo"],
+      "port": 4310,
+      "autoPort": true
     }
   ]
 }

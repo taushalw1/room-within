@@ -151,7 +151,7 @@ export default async function InstructorsPage() {
             <RunButton
               action={refreshStandings}
               label="Update standings"
-              icon={Award}
+              icon={<Award className="h-3.5 w-3.5" aria-hidden />}
             />
           }
         />

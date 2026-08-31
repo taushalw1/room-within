@@ -19,3 +19,6 @@ npm-debug.log*
 
 # Rendered email previews (npm run preview:emails)
 .email-preview/
+
+# Demo-mode dev server build output
+.next-demo/
