@@ -42,6 +42,7 @@ export const site = {
  */
 export const nav = [
   { href: "/spaces", label: "Our Spaces" },
+  { href: "/classes", label: "Classes" },
   { href: "/calendar", label: "Community Calendar" },
   { href: "/counselling", label: "Counselling" },
   { href: "/about", label: "About" },

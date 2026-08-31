@@ -1,6 +1,7 @@
 import { startOfMonth, subMonths } from "date-fns";
 import { getServerSupabase } from "@/lib/supabase/server";
 import { isDemoMode } from "@/lib/demo";
+import { sampleStatements } from "./sample-classes";
 import {
   sampleAppointments,
   sampleBookings,
@@ -27,6 +28,7 @@ import type {
   TaskRow,
   UnitRow,
   DonationRow,
+  InstructorStatementRow,
 } from "./types";
 
 /**
@@ -137,6 +139,19 @@ export async function getDonations(): Promise<DonationRow[]> {
     .select("*")
     .order("received_at", { ascending: false });
   return (data as DonationRow[]) ?? [];
+}
+
+export async function getInstructorStatements(): Promise<
+  InstructorStatementRow[]
+> {
+  if (isDemoMode) return sampleStatements;
+  const supabase = await getServerSupabase();
+  if (!supabase) return [];
+  const { data } = await supabase
+    .from("instructor_statements")
+    .select("*")
+    .order("period", { ascending: false });
+  return (data as InstructorStatementRow[]) ?? [];
 }
 
 export async function getAppointments(): Promise<AppointmentRow[]> {

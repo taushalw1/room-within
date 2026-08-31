@@ -452,3 +452,88 @@ ${site.address.oneLine}`;
     text,
   });
 }
+
+/** Sent when somebody signs up for a class session. */
+export async function sendClassSignup(opts: {
+  to: string;
+  name: string;
+  className: string;
+  when: string;
+  payingNote: string;
+}): Promise<SendResult> {
+  const body = `
+    ${P(`Hello ${opts.name},`)}
+    ${P(`You&rsquo;re signed up for <strong>${opts.className}</strong>.`)}
+    ${NOTE(`
+      <strong style="color:#414d30;">${opts.className}</strong><br>
+      ${opts.when}<br>
+      ${site.address.oneLine}
+      <br><br>
+      ${opts.payingNote}
+    `)}
+    ${P("If a class doesn't get enough people signed up, it doesn't run — we'll email you the day before and any credits go straight back. Nothing to chase.")}
+    ${P("If you find you can't make it, just reply and let us know, so somebody else can have the place.")}
+    ${SIGNOFF}`;
+
+  return send({
+    to: opts.to,
+    subject: `You're in — ${opts.className}`,
+    html: shell("You're signed up", body, {
+      preview: `${opts.className}, ${opts.when}`,
+    }),
+    text: `Hello ${opts.name},
+
+You're signed up for ${opts.className}.
+
+${opts.when}
+${site.address.oneLine}
+
+${opts.payingNote}
+
+If a class doesn't get enough people it doesn't run — we'll email you the day before and any credits go back.
+
+Warmly,
+Tausha
+${site.name}`,
+  });
+}
+
+/** Sent when a session cancels itself for want of numbers. */
+export async function sendClassCancelled(opts: {
+  to: string;
+  name: string;
+  className: string;
+  when: string;
+  refunded: boolean;
+}): Promise<SendResult> {
+  const body = `
+    ${P(`Hello ${opts.name},`)}
+    ${P(`I&rsquo;m sorry — <strong>${opts.className}</strong> on ${opts.when} isn&rsquo;t going ahead. Not enough people signed up this time, so we&rsquo;ve called it off rather than have the instructor come out for two.`)}
+    ${
+      opts.refunded
+        ? NOTE(
+            `Your credits have already gone back to your account. There&rsquo;s nothing you need to do.`,
+          )
+        : P("You weren't charged anything, so there's nothing to sort out.")
+    }
+    ${P("It usually runs — this was just a quiet week. Do have a look at the other dates.")}
+    ${SIGNOFF}`;
+
+  return send({
+    to: opts.to,
+    subject: `Not going ahead — ${opts.className}`,
+    html: shell("A class has been called off", body, {
+      preview: `${opts.className}, ${opts.when}`,
+      cta: { label: "See other dates", url: `${SITE_URL}/classes` },
+    }),
+    text: `Hello ${opts.name},
+
+${opts.className} on ${opts.when} isn't going ahead — not enough people signed up.
+
+${opts.refunded ? "Your credits have gone back to your account." : "You weren't charged anything."}
+
+Warmly,
+Tausha
+${site.name}`,
+  });
+}

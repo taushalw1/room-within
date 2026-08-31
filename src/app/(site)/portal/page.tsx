@@ -14,6 +14,12 @@ import { requireUser } from "@/lib/auth";
 import { getServerSupabase } from "@/lib/supabase/server";
 import { dateShort, dateTimeRange, moneyExact } from "@/lib/format";
 import type { BookingRow, InvoiceRow } from "@/lib/data/types";
+import {
+  getCreditLedgerFor,
+  getCreditSettings,
+  getMembershipForContact,
+} from "@/lib/data/classes";
+import { creditBalance } from "@/lib/credits";
 import { site } from "@/lib/site";
 
 export const metadata: Metadata = {
@@ -53,6 +59,77 @@ export default async function PortalPage() {
     bookings = (data as typeof bookings) ?? [];
   }
 
+  const membership = await getMembershipForContact(user.contactId);
+  const ledger = membership ? await getCreditLedgerFor(membership.id) : [];
+  const balance = creditBalance(ledger);
+  const creditSettings = await getCreditSettings();
+
+  // Classes they're signed up for. Row-level security limits this to their own.
+  let myClasses: {
+    id: string;
+    tier: string;
+    credits_spent: number;
+    class_sessions: {
+      starts_at: string;
+      ends_at: string;
+      status: string;
+      classes: { title: string } | null;
+    } | null;
+  }[] = [];
+
+  if (user.contactId) {
+    const supabase = await getServerSupabase();
+    const { data } = (await supabase
+      ?.from("enrolments")
+      .select(
+        "id, tier, credits_spent, class_sessions!inner(starts_at, ends_at, status, classes!inner(title))",
+      )
+      .eq("contact_id", user.contactId)
+      .is("cancelled_at", null)) ?? { data: null };
+
+    type Raw = {
+      id: string;
+      tier: string;
+      credits_spent: number;
+      class_sessions:
+        | {
+            starts_at: string;
+            ends_at: string;
+            status: string;
+            classes: { title: string }[] | { title: string } | null;
+          }[]
+        | {
+            starts_at: string;
+            ends_at: string;
+            status: string;
+            classes: { title: string }[] | { title: string } | null;
+          }
+        | null;
+    };
+
+    const one = <T,>(v: T[] | T | null): T | null =>
+      Array.isArray(v) ? (v[0] ?? null) : v;
+
+    myClasses = ((data as unknown as Raw[]) ?? [])
+      .map((row) => {
+        const session = one(row.class_sessions);
+        return {
+          id: row.id,
+          tier: row.tier,
+          credits_spent: row.credits_spent,
+          class_sessions: session
+            ? { ...session, classes: one(session.classes) }
+            : null,
+        };
+      })
+      .filter(
+      (e) =>
+        e.class_sessions &&
+        new Date(e.class_sessions.ends_at) >= new Date() &&
+        e.class_sessions.status !== "cancelled",
+    );
+  }
+
   const owing = invoices
     .filter((i) => i.state === "overdue" || i.state === "outstanding")
     .reduce((s, i) => s + i.balance_cents, 0);
@@ -78,6 +155,86 @@ export default async function PortalPage() {
             </ButtonLink>
           </div>
         </header>
+
+        {membership && (
+          <Card className="mt-8">
+            <CardHeader
+              title="Your community plan"
+              description={
+                membership.plan === "family"
+                  ? "One pool of credits for the whole household."
+                  : undefined
+              }
+            />
+            <div className="flex flex-wrap items-end justify-between gap-6 px-5 py-5">
+              <div>
+                <p className="eyebrow !text-[0.6rem] text-bark">
+                  Credits to spend
+                </p>
+                <p className="mt-1 font-display text-4xl font-semibold text-olive-deep">
+                  {balance.available}
+                </p>
+                {balance.expiringSoon > 0 && (
+                  <p className="mt-1 text-sm text-burgundy">
+                    {balance.expiringSoon} of them go at the end of this month.
+                  </p>
+                )}
+                <p className="mt-1 text-sm text-ink-soft">
+                  {membership.credits_per_month} more on the first of the month.
+                  They keep for {creditSettings.rollover_months} months.
+                </p>
+              </div>
+              <ButtonLink href="/classes" size="sm">
+                Spend them
+              </ButtonLink>
+            </div>
+          </Card>
+        )}
+
+        {myClasses.length > 0 && (
+          <Card className="mt-8">
+            <CardHeader
+              title="Classes you're coming to"
+              description="If one doesn't get its numbers it won't run, and we'll email you the day before."
+            />
+            <Table>
+              <thead>
+                <tr>
+                  <Th>What</Th>
+                  <Th>When</Th>
+                  <Th align="right">Status</Th>
+                </tr>
+              </thead>
+              <tbody>
+                {myClasses.map((e) => (
+                  <tr key={e.id}>
+                    <Td>{e.class_sessions?.classes?.title ?? "Class"}</Td>
+                    <Td>
+                      {e.class_sessions &&
+                        dateTimeRange(
+                          e.class_sessions.starts_at,
+                          e.class_sessions.ends_at,
+                        )}
+                    </Td>
+                    <Td align="right">
+                      <Badge
+                        tone={
+                          e.class_sessions?.status === "confirmed"
+                            ? "good"
+                            : "warn"
+                        }
+                      >
+                        {e.class_sessions?.status === "confirmed"
+                          ? "going ahead"
+                          : "waiting on numbers"}
+                      </Badge>
+                    </Td>
+                  </tr>
+                ))}
+              </tbody>
+            </Table>
+          </Card>
+        )}
 
         <Card className="mt-8">
           <CardHeader

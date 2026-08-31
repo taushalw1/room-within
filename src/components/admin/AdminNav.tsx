@@ -12,6 +12,9 @@ import {
   Settings,
   Users,
   Wallet,
+  Award,
+  Coins,
+  GraduationCap,
 } from "lucide-react";
 import { LogoLockup } from "@/components/brand/Logo";
 import { cn } from "@/lib/cn";
@@ -20,6 +23,9 @@ const links = [
   { href: "/admin", label: "Dashboard", icon: Home, exact: true },
   { href: "/admin/rentals", label: "Rentals", icon: KeyRound },
   { href: "/admin/bookings", label: "Bookings", icon: CalendarDays },
+  { href: "/admin/classes", label: "Classes", icon: GraduationCap },
+  { href: "/admin/instructors", label: "Instructors", icon: Award },
+  { href: "/admin/members", label: "Members", icon: Coins },
   { href: "/admin/events", label: "Events", icon: CalendarPlus },
   { href: "/admin/finance", label: "Finance", icon: Wallet },
   { href: "/admin/counselling", label: "Counselling", icon: NotebookPen },

@@ -206,3 +206,171 @@ export type CounsellingRequestRow = {
   status: "new" | "contacted" | "scheduled" | "declined" | "closed";
   created_at: string;
 };
+
+/* ---------------------------------------------------------------------------
+   Classes, instructors, equipment, storage and memberships
+   --------------------------------------------------------------------------- */
+
+export type Tier = "full" | "reduced" | "subsidized";
+
+export type InstructorRow = {
+  id: string;
+  contact_id: string | null;
+  display_name: string;
+  headline: string | null;
+  bio: string | null;
+  photo_url: string | null;
+  standing: "new" | "earned";
+  earned_at: string | null;
+  guaranteed_pay_cents: number;
+  split_percent: number | null;
+  agreement_signed_on: string | null;
+  waiver_signed_on: string | null;
+  notes: string | null;
+  is_active: boolean;
+  created_at: string;
+};
+
+export type EquipmentRow = {
+  id: string;
+  name: string;
+  description: string | null;
+  quantity: number;
+  session_rate_cents: number;
+  is_active: boolean;
+  created_at: string;
+};
+
+export type StorageRentalRow = {
+  id: string;
+  instructor_id: string;
+  label: string;
+  size: "shelf" | "locker" | "closet" | "corner" | "room";
+  monthly_rate_cents: number;
+  started_on: string;
+  ended_on: string | null;
+  notes: string | null;
+  created_at: string;
+};
+
+export type ClassRow = {
+  id: string;
+  instructor_id: string | null;
+  room_id: string | null;
+  title: string;
+  summary: string | null;
+  description: string | null;
+  session_minutes: number;
+  capacity: number;
+  full_price_cents: number;
+  reduced_price_cents: number;
+  subsidized_price_cents: number;
+  subsidized_seat_cap: number;
+  credit_cost: number;
+  /** Landlord's eyes only — never sent to a public page. */
+  materials_cost_cents: number;
+  materials_note: string | null;
+  min_headcount: number;
+  status: "draft" | "open" | "full" | "finished" | "cancelled";
+  is_public: boolean;
+  created_at: string;
+};
+
+/** A class as the public sees it: no materials cost, no private notes. */
+export type PublicClass = Omit<
+  ClassRow,
+  "materials_cost_cents" | "materials_note"
+>;
+
+export type ClassSessionRow = {
+  id: string;
+  class_id: string;
+  starts_at: string;
+  ends_at: string;
+  status: "scheduled" | "confirmed" | "cancelled" | "delivered";
+  decided_at: string | null;
+  cancel_reason: string | null;
+  attendance_recorded_at: string | null;
+  notes: string | null;
+  created_at: string;
+};
+
+export type EnrolmentRow = {
+  id: string;
+  session_id: string;
+  contact_id: string | null;
+  attendee_name: string;
+  attendee_email: string | null;
+  tier: Tier;
+  method: "cash" | "credit";
+  credits_spent: number;
+  paid_cents: number;
+  subsidy_cents: number;
+  attended: boolean | null;
+  cancelled_at: string | null;
+  created_at: string;
+};
+
+export type MembershipRow = {
+  id: string;
+  contact_id: string;
+  plan: "individual" | "family";
+  household_name: string | null;
+  monthly_price_cents: number;
+  credits_per_month: number;
+  status: "active" | "paused" | "cancelled";
+  started_on: string;
+  cancelled_on: string | null;
+  stripe_subscription_id: string | null;
+  notes: string | null;
+  created_at: string;
+};
+
+export type CreditLedgerRow = {
+  id: string;
+  membership_id: string;
+  delta: number;
+  reason: "monthly" | "purchase" | "spent" | "refund" | "expired" | "adjustment";
+  session_id: string | null;
+  expires_on: string | null;
+  period: string | null;
+  note: string | null;
+  created_at: string;
+};
+
+export type InstructorStatementRow = {
+  id: string;
+  instructor_id: string;
+  period: string;
+  class_revenue_cents: number;
+  instructor_share_cents: number;
+  equipment_cents: number;
+  storage_cents: number;
+  guaranteed_cents: number;
+  net_payout_cents: number;
+  materials_cents: number;
+  sessions_delivered: number;
+  status: "draft" | "paid";
+  paid_on: string | null;
+  notes: string | null;
+  created_at: string;
+};
+
+/** Editable in /admin/settings; defaults live in migration 0004. */
+export type ClassSettings = {
+  hub_split_percent: number;
+  confirm_hours_before: number;
+  earned_after_sessions: number;
+  earned_min_average_attendance: number;
+};
+
+export type CreditSettings = {
+  individual_price_cents: number;
+  individual_credits: number;
+  family_price_cents: number;
+  family_credits: number;
+  extra_credit_cents: number;
+  dropin_cents: number;
+  rollover_months: number;
+  family_same_class_cap: number;
+};

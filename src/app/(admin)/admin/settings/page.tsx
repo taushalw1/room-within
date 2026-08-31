@@ -6,6 +6,11 @@ import { RoomRateRow } from "@/components/admin/RoomRateRow";
 import { UnitForm } from "@/components/admin/UnitForm";
 import { UnitRateRow } from "@/components/admin/UnitRateRow";
 import { Card, CardHeader, Table, Td, Th } from "@/components/ui/Table";
+import {
+  ClassSettingsForm,
+  CreditSettingsForm,
+} from "@/components/admin/ClassSettingsForms";
+import { getClassSettings, getCreditSettings } from "@/lib/data/classes";
 import { getRooms } from "@/lib/data/public";
 import { getRates, getUnits } from "@/lib/data/admin";
 import { getCurrentUser } from "@/lib/auth";
@@ -13,12 +18,15 @@ import { money } from "@/lib/format";
 import { site } from "@/lib/site";
 
 export default async function SettingsPage() {
-  const [rooms, units, rates, user] = await Promise.all([
-    getRooms(),
-    getUnits(),
-    getRates(),
-    getCurrentUser(),
-  ]);
+  const [rooms, units, rates, user, classSettings, creditSettings] =
+    await Promise.all([
+      getRooms(),
+      getUnits(),
+      getRates(),
+      getCurrentUser(),
+      getClassSettings(),
+      getCreditSettings(),
+    ]);
 
   return (
     <div className="space-y-8">
@@ -97,6 +105,26 @@ export default async function SettingsPage() {
         />
         <div className="px-5 py-5">
           <RatesForm rates={rates} />
+        </div>
+      </Card>
+
+      <Card>
+        <CardHeader
+          title="Classes"
+          description="How class money is split, and when a class decides whether it's going ahead."
+        />
+        <div className="px-5 py-5">
+          <ClassSettingsForm settings={classSettings} />
+        </div>
+      </Card>
+
+      <Card>
+        <CardHeader
+          title="Community plans"
+          description="What a membership costs and what it buys."
+        />
+        <div className="px-5 py-5">
+          <CreditSettingsForm settings={creditSettings} />
         </div>
       </Card>
 

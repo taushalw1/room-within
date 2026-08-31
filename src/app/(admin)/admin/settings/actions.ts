@@ -1,5 +1,6 @@
 "use server";
 
+import { creditWarnings } from "@/lib/credits";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { requireAdmin } from "@/lib/auth";
@@ -400,4 +401,129 @@ export async function sendTestEmail(
 
   if (!result.ok) return { ok: false, message: result.message };
   return { ok: true, message: `Sent to ${to}. Give it a minute.` };
+}
+
+/* ---------------------------------------------------------------------------
+   Classes, credits and memberships
+   --------------------------------------------------------------------------- */
+
+const classSettingsSchema = z.object({
+  hubSplitPercent: z.coerce.number().int().min(0).max(100),
+  confirmHoursBefore: z.coerce.number().int().min(1).max(168),
+  earnedAfterSessions: z.coerce.number().int().min(1).max(200),
+  earnedMinAverage: z.coerce.number().min(0).max(200),
+});
+
+export async function updateClassSettings(
+  _prev: ActionResult | null,
+  formData: FormData,
+): Promise<ActionResult> {
+  await requireAdmin();
+  if (isDemoMode) return DEMO_RESULT;
+
+  const parsed = classSettingsSchema.safeParse({
+    hubSplitPercent: formData.get("hubSplitPercent"),
+    confirmHoursBefore: formData.get("confirmHoursBefore"),
+    earnedAfterSessions: formData.get("earnedAfterSessions"),
+    earnedMinAverage: formData.get("earnedMinAverage"),
+  });
+
+  if (!parsed.success) {
+    return { ok: false, message: parsed.error.issues[0].message };
+  }
+
+  const supabase = await getServerSupabase();
+  if (!supabase) return { ok: false, message: "No database connection." };
+
+  const { error } = await supabase.from("settings").upsert(
+    {
+      key: "classes",
+      value: {
+        hub_split_percent: parsed.data.hubSplitPercent,
+        confirm_hours_before: parsed.data.confirmHoursBefore,
+        earned_after_sessions: parsed.data.earnedAfterSessions,
+        earned_min_average_attendance: parsed.data.earnedMinAverage,
+      },
+      updated_at: new Date().toISOString(),
+    },
+    { onConflict: "key" },
+  );
+
+  if (error) return { ok: false, message: `Couldn't save that: ${error.message}` };
+
+  revalidatePath("/admin/classes");
+  revalidatePath("/admin/instructors");
+  revalidatePath("/classes");
+  return {
+    ok: true,
+    message:
+      "Saved. This applies to classes from now on — statements already marked paid don't move.",
+  };
+}
+
+const creditSettingsSchema = z.object({
+  individualPrice: z.coerce.number().min(0),
+  individualCredits: z.coerce.number().int().min(0).max(100),
+  familyPrice: z.coerce.number().min(0),
+  familyCredits: z.coerce.number().int().min(0).max(100),
+  extraCredit: z.coerce.number().min(0),
+  dropin: z.coerce.number().min(0),
+  rolloverMonths: z.coerce.number().int().min(0).max(24),
+  familySameClassCap: z.coerce.number().int().min(0).max(100),
+});
+
+export async function updateCreditSettings(
+  _prev: ActionResult | null,
+  formData: FormData,
+): Promise<ActionResult> {
+  await requireAdmin();
+  if (isDemoMode) return DEMO_RESULT;
+
+  const parsed = creditSettingsSchema.safeParse({
+    individualPrice: formData.get("individualPrice"),
+    individualCredits: formData.get("individualCredits"),
+    familyPrice: formData.get("familyPrice"),
+    familyCredits: formData.get("familyCredits"),
+    extraCredit: formData.get("extraCredit"),
+    dropin: formData.get("dropin"),
+    rolloverMonths: formData.get("rolloverMonths"),
+    familySameClassCap: formData.get("familySameClassCap"),
+  });
+
+  if (!parsed.success) {
+    return { ok: false, message: parsed.error.issues[0].message };
+  }
+
+  const supabase = await getServerSupabase();
+  if (!supabase) return { ok: false, message: "No database connection." };
+
+  const value = {
+    individual_price_cents: toCents(parsed.data.individualPrice),
+    individual_credits: parsed.data.individualCredits,
+    family_price_cents: toCents(parsed.data.familyPrice),
+    family_credits: parsed.data.familyCredits,
+    extra_credit_cents: toCents(parsed.data.extraCredit),
+    dropin_cents: toCents(parsed.data.dropin),
+    rollover_months: parsed.data.rolloverMonths,
+    family_same_class_cap: parsed.data.familySameClassCap,
+  };
+
+  const { error } = await supabase.from("settings").upsert(
+    { key: "credits", value, updated_at: new Date().toISOString() },
+    { onConflict: "key" },
+  );
+
+  if (error) return { ok: false, message: `Couldn't save that: ${error.message}` };
+
+  revalidatePath("/admin/members");
+  revalidatePath("/classes");
+
+  // Say so rather than let a quietly broken price sit there unnoticed.
+  const warnings = creditWarnings(value);
+  return {
+    ok: true,
+    message: warnings.length
+      ? `Saved — but worth a look: ${warnings[0]}`
+      : "Saved. Existing members keep their current price until you change theirs.",
+  };
 }

@@ -15,9 +15,23 @@ import {
 import {
   getDonations,
   getExpenses,
+  getInstructorStatements,
   getInvoices,
   getMonthlyTotals,
 } from "@/lib/data/admin";
+import {
+  getClassEquipment,
+  getClassSessions,
+  getClassSettings,
+  getClasses,
+  getCreditLedger,
+  getCreditSettings,
+  getEnrolments,
+  getInstructors,
+  getMemberships,
+} from "@/lib/data/classes";
+import { sessionMoney } from "@/lib/classes";
+import { creditBalance, creditValueCents } from "@/lib/credits";
 import { dateShort, money, moneyExact } from "@/lib/format";
 
 const STREAM_LABELS: Record<string, string> = {
@@ -29,11 +43,36 @@ const STREAM_LABELS: Record<string, string> = {
 };
 
 export default async function FinancePage() {
-  const [invoices, expenses, monthly, donationList] = await Promise.all([
+  const [
+    invoices,
+    expenses,
+    monthly,
+    donationList,
+    classes,
+    sessions,
+    enrolments,
+    instructors,
+    statements,
+    memberships,
+    ledger,
+    classSettings,
+    creditSettings,
+    classEquipment,
+  ] = await Promise.all([
     getInvoices(),
     getExpenses(),
     getMonthlyTotals(),
     getDonations(),
+    getClasses(),
+    getClassSessions(),
+    getEnrolments(),
+    getInstructors(),
+    getInstructorStatements(),
+    getMemberships(),
+    getCreditLedger(),
+    getClassSettings(),
+    getCreditSettings(),
+    getClassEquipment(),
   ]);
 
   const collected = invoices.reduce((s, i) => s + i.paid_cents, 0);
@@ -42,6 +81,62 @@ export default async function FinancePage() {
     .reduce((s, i) => s + i.balance_cents, 0);
   const spent = expenses.reduce((s, e) => s + e.amount_cents, 0);
   const donations = donationList.reduce((s, d) => s + d.amount_cents, 0);
+
+  /* ---- Classes ---- */
+
+  const instructorById = new Map(instructors.map((i) => [i.id, i]));
+  const classById = new Map(classes.map((c) => [c.id, c]));
+
+  const delivered = sessions
+    .filter((session) => session.status === "delivered")
+    .map((session) => {
+      const klass = classById.get(session.class_id);
+      if (!klass) return null;
+      return {
+        session,
+        klass,
+        money: sessionMoney(
+          klass,
+          enrolments.filter((e) => e.session_id === session.id),
+          {
+            settings: classSettings,
+            instructor: instructorById.get(klass.instructor_id ?? "") ?? null,
+            equipment: classEquipment.get(klass.id),
+          },
+        ),
+      };
+    })
+    .filter((x): x is NonNullable<typeof x> => x !== null);
+
+  const classFees = delivered.reduce((s, d) => s + d.money.collectedCents, 0);
+  const hubShare = delivered.reduce((s, d) => s + d.money.hubCents, 0);
+  const instructorShare = delivered.reduce(
+    (s, d) => s + d.money.instructorCents,
+    0,
+  );
+  const equipmentIncome = delivered.reduce(
+    (s, d) => s + d.money.equipmentCents,
+    0,
+  );
+  const subsidyGiven = delivered.reduce((s, d) => s + d.money.subsidyCents, 0);
+  const seatsTaught = delivered.reduce((s, d) => s + d.money.headcount, 0);
+
+  const owedToInstructors = statements
+    .filter((x) => x.status !== "paid")
+    .reduce((s, x) => s + x.net_payout_cents, 0);
+
+  /* ---- Credits: money taken for classes not yet taught ---- */
+
+  const creditLiability = memberships.reduce((sum, m) => {
+    const balance = creditBalance(
+      ledger.filter((r) => r.membership_id === m.id),
+    );
+    return sum + balance.available * creditValueCents(m.plan, creditSettings);
+  }, 0);
+
+  const membershipIncome = memberships
+    .filter((m) => m.status === "active")
+    .reduce((s, m) => s + m.monthly_price_cents, 0);
 
   // Income by part of the business
   const byStream = new Map<string, { collected: number; owed: number }>();
@@ -229,6 +324,83 @@ export default async function FinancePage() {
         </Table>
       </Card>
 
+      {/* ---------- Classes ---------- */}
+      <Card>
+        <CardHeader
+          title="Classes"
+          description="Every class that has actually been taught. A class that was scheduled and cancelled earns nothing and costs nothing."
+        />
+        <div className="grid gap-x-8 gap-y-4 px-5 py-5 sm:grid-cols-2 lg:grid-cols-3">
+          <Figure
+            label="Fees taken"
+            value={moneyExact(classFees)}
+            note={`${seatsTaught} seats across ${delivered.length} sessions`}
+          />
+          <Figure
+            label="Your share"
+            value={moneyExact(hubShare)}
+            note={`${classSettings.hub_split_percent}% of the class fee`}
+          />
+          <Figure
+            label="Equipment hire"
+            value={moneyExact(equipmentIncome)}
+            note="Yours, on top of the split"
+          />
+          <Figure
+            label="Instructors' share"
+            value={moneyExact(instructorShare)}
+            note="Before equipment and storage come off"
+          />
+          <Figure
+            label="Still to pay out"
+            value={moneyExact(owedToInstructors)}
+            note="Statements not yet marked paid"
+            tone={owedToInstructors > 0 ? "bad" : undefined}
+          />
+          <Figure
+            label="Scholarship fund used"
+            value={moneyExact(subsidyGiven)}
+            note="Made up so reduced and subsidized seats cost the instructor nothing"
+          />
+        </div>
+        <p className="border-t border-tan/20 px-5 py-3.5 text-xs text-ink-faint">
+          The scholarship figure is what the sliding scale actually costs. It
+          is the difference between what people paid and the full price, and it
+          comes out of your share — which is why it is worth watching.
+        </p>
+      </Card>
+
+      {/* ---------- Memberships ---------- */}
+      <Card>
+        <CardHeader
+          title="Memberships and credits"
+          description="Subscription money arrives before the classes are taught, so some of it isn't yours to spend yet."
+        />
+        <div className="grid gap-x-8 gap-y-4 px-5 py-5 sm:grid-cols-2 lg:grid-cols-3">
+          <Figure
+            label="Coming in monthly"
+            value={moneyExact(membershipIncome)}
+            note={`${memberships.filter((m) => m.status === "active").length} active plans`}
+          />
+          <Figure
+            label="Credits unspent"
+            value={moneyExact(creditLiability)}
+            note="Classes paid for and not yet taught"
+            tone={creditLiability > membershipIncome * 2 ? "bad" : undefined}
+          />
+          <Figure
+            label="Drop-in price"
+            value={moneyExact(creditSettings.dropin_cents)}
+            note={`A credit is worth ${moneyExact(creditValueCents("individual", creditSettings))}`}
+          />
+        </div>
+        <p className="border-t border-tan/20 px-5 py-3.5 text-xs text-ink-faint">
+          Credits unspent is a debt, not income — somebody has paid for a class
+          you still owe them. Worth keeping that much back rather than counting
+          it as takings.
+        </p>
+      </Card>
+
       {/* ---------- Donations ---------- */}
       <Card>
         <CardHeader
@@ -306,6 +478,30 @@ export default async function FinancePage() {
         account for depreciation, GST filing periods, or accruals. Give your
         accountant the underlying records, not this page.
       </p>
+    </div>
+  );
+}
+
+function Figure({
+  label,
+  value,
+  note,
+  tone,
+}: {
+  label: string;
+  value: string;
+  note?: string;
+  tone?: "bad";
+}) {
+  return (
+    <div>
+      <p className="eyebrow !text-[0.6rem] text-bark">{label}</p>
+      <p
+        className={`mt-1 font-display text-2xl font-semibold ${tone === "bad" ? "text-burgundy" : "text-olive-deep"}`}
+      >
+        {value}
+      </p>
+      {note && <p className="mt-0.5 text-xs text-ink-faint">{note}</p>}
     </div>
   );
 }
