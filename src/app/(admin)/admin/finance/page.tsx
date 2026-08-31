@@ -5,6 +5,7 @@ import { ExpenseRow } from "@/components/admin/ExpenseRow";
 import { MonthlyChart } from "@/components/admin/MonthlyChart";
 import { Stat } from "@/components/admin/Stat";
 import {
+  Badge,
   Card,
   CardHeader,
   EmptyRow,
@@ -133,6 +134,36 @@ export default async function FinancePage() {
     );
     return sum + balance.available * creditValueCents(m.plan, creditSettings);
   }, 0);
+
+  /* ---- Year end ---- */
+
+  const yearStart = new Date(new Date().getFullYear(), 0, 1);
+
+  // Anyone paid more than $500 in a calendar year needs a T4A by February.
+  const t4a = instructors
+    .map((instructor) => {
+      const paid = statements
+        .filter(
+          (x) =>
+            x.instructor_id === instructor.id &&
+            x.status === "paid" &&
+            new Date(x.period) >= yearStart,
+        )
+        .reduce((sum, x) => sum + x.net_payout_cents, 0);
+      return { instructor, paid };
+    })
+    .filter((x) => x.paid > 0)
+    .sort((a, b) => b.paid - a.paid);
+
+  const t4aNeeded = t4a.filter((x) => x.paid > 50_000);
+
+  // GST registration becomes compulsory past $30,000 of revenue in a year.
+  const revenueThisYear =
+    invoices
+      .filter((i) => new Date(i.due_date) >= yearStart)
+      .reduce((sum, i) => sum + i.paid_cents, 0) + hubShare + equipmentIncome;
+
+  const GST_THRESHOLD = 3_000_000;
 
   const membershipIncome = memberships
     .filter((m) => m.status === "active")
@@ -471,6 +502,89 @@ export default async function FinancePage() {
             </span>
           </div>
         )}
+      </Card>
+
+      {/* ---------- Year end ---------- */}
+      <Card>
+        <CardHeader
+          title="Year end"
+          description="The two figures that turn into paperwork. Neither is urgent until it is."
+        />
+
+        <div className="border-b border-tan/20 px-5 py-5">
+          <div className="flex flex-wrap items-baseline justify-between gap-4">
+            <div>
+              <p className="eyebrow !text-[0.6rem] text-bark">
+                Revenue this year
+              </p>
+              <p
+                className={`mt-1 font-display text-2xl font-semibold ${revenueThisYear >= GST_THRESHOLD ? "text-burgundy" : "text-olive-deep"}`}
+              >
+                {moneyExact(revenueThisYear)}
+              </p>
+            </div>
+            <p className="max-w-md text-sm text-ink-soft">
+              {revenueThisYear >= GST_THRESHOLD ? (
+                <>
+                  You have passed <strong>$30,000</strong>. Registering for GST
+                  is no longer optional — worth speaking to an accountant now
+                  rather than at year end.
+                </>
+              ) : (
+                <>
+                  GST registration becomes compulsory at{" "}
+                  <strong>$30,000</strong> in a year.{" "}
+                  {moneyExact(GST_THRESHOLD - revenueThisYear)} to go.
+                </>
+              )}
+            </p>
+          </div>
+        </div>
+
+        <Table>
+          <thead>
+            <tr>
+              <Th>Paid to</Th>
+              <Th align="right">This year</Th>
+              <Th align="right">T4A</Th>
+            </tr>
+          </thead>
+          <tbody>
+            {t4a.length === 0 ? (
+              <EmptyRow colSpan={3}>
+                Nobody has been paid out yet this year.
+              </EmptyRow>
+            ) : (
+              t4a.map(({ instructor, paid }) => (
+                <tr key={instructor.id}>
+                  <Td>{instructor.display_name}</Td>
+                  <Td align="right">{moneyExact(paid)}</Td>
+                  <Td align="right">
+                    <Badge tone={paid > 50_000 ? "warn" : "neutral"}>
+                      {paid > 50_000 ? "needed" : "not needed"}
+                    </Badge>
+                  </Td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </Table>
+
+        <p className="border-t border-tan/20 px-5 py-3.5 text-xs text-ink-faint">
+          {t4aNeeded.length > 0 ? (
+            <>
+              {t4aNeeded.length} instructor
+              {t4aNeeded.length === 1 ? " needs a" : "s need"} T4A slip
+              {t4aNeeded.length === 1 ? "" : "s"} by the end of February. Only
+              statements you have marked paid are counted.
+            </>
+          ) : (
+            <>
+              A T4A is required for anyone paid more than $500 in a calendar
+              year. Only statements you have marked paid are counted.
+            </>
+          )}
+        </p>
       </Card>
 
       <p className="text-xs text-ink-faint">
