@@ -1,6 +1,7 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Cormorant_Garamond, Lora, Parisienne } from "next/font/google";
 import "./globals.css";
+import { InstallApp } from "@/components/site/InstallApp";
 
 const cormorant = Cormorant_Garamond({
   subsets: ["latin"],
@@ -34,6 +35,21 @@ export const metadata: Metadata = {
   },
   description:
     "A historic 1905 building in Grassy Lake, Alberta, reimagined for families, learning, entrepreneurship, and community. Book a room, join an event, or find support.",
+  // Tells iOS and Android this is installable, and which colours to paint
+  // around it once it is.
+  manifest: "/manifest.webmanifest",
+  appleWebApp: {
+    capable: true,
+    title: "Room Within",
+    statusBarStyle: "default",
+  },
+  icons: {
+    icon: [
+      { url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },
+      { url: "/icons/icon-512.png", sizes: "512x512", type: "image/png" },
+    ],
+    apple: "/icons/apple-touch-icon.png",
+  },
   openGraph: {
     title: "Room Within Community",
     description:
@@ -41,6 +57,10 @@ export const metadata: Metadata = {
     type: "website",
     locale: "en_CA",
   },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#5e6e45",
 };
 
 export default function RootLayout({
@@ -53,7 +73,10 @@ export default function RootLayout({
       lang="en-CA"
       className={`${cormorant.variable} ${lora.variable} ${parisienne.variable}`}
     >
-      <body className="min-h-dvh antialiased">{children}</body>
+      <body className="min-h-dvh antialiased">
+        {children}
+        <InstallApp />
+      </body>
     </html>
   );
 }

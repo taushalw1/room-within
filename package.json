@@ -15,7 +15,8 @@
     "migrate": "node scripts/run-migration.mjs",
     "preview:emails": "npx --yes tsx scripts/preview-emails.mts",
     "check:math": "npx --yes tsx scripts/check-class-math.mts",
-    "dev:demo": "node scripts/dev-demo.mjs"
+    "dev:demo": "node scripts/dev-demo.mjs",
+    "build:icons": "node scripts/build-app-icons.mjs"
   },
   "dependencies": {
     "@netlify/plugin-nextjs": "^5.15.13",
