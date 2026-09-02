@@ -1,4 +1,5 @@
 import { CalendarCheck, GraduationCap, Users, Wand2 } from "lucide-react";
+import { PageHeader } from "@/components/admin/PageHeader";
 import { AddPanel } from "@/components/admin/AddPanel";
 import { ClassCard, type SessionView } from "@/components/admin/ClassCard";
 import { ClassForm } from "@/components/admin/ClassForm";
@@ -96,13 +97,11 @@ export default async function ClassesPage() {
 
   return (
     <div className="space-y-8">
-      <header>
-        <h1 className="text-3xl">Classes</h1>
-        <p className="mt-1.5 text-ink-soft">
-          What&rsquo;s being taught here, who&rsquo;s coming, and what everyone
-          is owed.
-        </p>
-      </header>
+      <PageHeader
+        eyebrow="Programs"
+        title="Classes"
+        description="What&rsquo;s being taught here, who&rsquo;s coming, and what everyone is owed."
+      />
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Stat
@@ -134,6 +133,7 @@ export default async function ClassesPage() {
       <Card>
         <CardHeader
           title="The rule that runs itself"
+          tone="olive"
           description={`A session needs its minimum signed up by ${settings.confirm_hours_before} hours before it starts, or it cancels and credits go back. This happens on its own each night — the button is for watching it work.`}
         />
         <div className="px-5 pb-5">

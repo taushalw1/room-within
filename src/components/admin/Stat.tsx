@@ -25,23 +25,34 @@ export function Stat({
   const body = (
     <div
       className={cn(
-        "h-full rounded-[var(--radius-card)] border p-5 transition-colors",
+        "h-full overflow-hidden rounded-[var(--radius-card)] border p-5 transition-colors",
+        // A stripe of colour down the left edge. Four of these sit in a row and
+        // on plain cream they read as one block — the stripe separates them
+        // and carries the tone without shouting.
+        "border-l-4",
         tone === "bad"
-          ? "border-burgundy/30 bg-blush/40"
-          : "border-tan/25 bg-cream",
+          ? "border-burgundy/30 border-l-burgundy bg-blush/40"
+          : tone === "good"
+            ? "border-sage/30 border-l-olive bg-sage-pale/35"
+            : "border-tan/25 border-l-sage bg-cream",
         href && "hover:border-olive/40",
       )}
     >
       <div className="flex items-start justify-between gap-3">
         <p className="eyebrow !text-[0.62rem] text-bark">{label}</p>
         {Icon && (
-          <Icon
+          <span
             className={cn(
-              "h-4 w-4 shrink-0",
-              tone === "bad" ? "text-burgundy" : "text-sage",
+              "flex h-8 w-8 shrink-0 items-center justify-center rounded-full",
+              tone === "bad"
+                ? "bg-burgundy/12 text-burgundy"
+                : tone === "good"
+                  ? "bg-olive/12 text-olive-deep"
+                  : "bg-sage-pale/70 text-olive",
             )}
-            aria-hidden
-          />
+          >
+            <Icon className="h-4 w-4" aria-hidden />
+          </span>
         )}
       </div>
       <p

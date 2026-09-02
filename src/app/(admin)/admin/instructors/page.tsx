@@ -1,4 +1,5 @@
 import { Award, Boxes, HandCoins, Package } from "lucide-react";
+import { PageHeader } from "@/components/admin/PageHeader";
 import { AddPanel } from "@/components/admin/AddPanel";
 import { RunButton } from "@/components/admin/RunButton";
 import { Stat } from "@/components/admin/Stat";
@@ -106,13 +107,11 @@ export default async function InstructorsPage() {
 
   return (
     <div className="space-y-8">
-      <header>
-        <h1 className="text-3xl">Instructors</h1>
-        <p className="mt-1.5 text-ink-soft">
-          Who teaches here, what they&rsquo;re owed, and what they rent from
-          you.
-        </p>
-      </header>
+      <PageHeader
+        eyebrow="Programs"
+        title="Instructors"
+        description="Who teaches here, what they&rsquo;re owed, and what they rent from you."
+      />
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Stat
@@ -197,6 +196,7 @@ export default async function InstructorsPage() {
       <Card>
         <CardHeader
           title="Monthly statements"
+          tone="olive"
           description="What each instructor earned, what they owe you for equipment and storage, and what's left to pay them. Equipment and storage are separate lines so they can see exactly what they're being charged for."
         />
 

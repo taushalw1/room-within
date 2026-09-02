@@ -1,4 +1,5 @@
 import { AddPanel } from "@/components/admin/AddPanel";
+import { PageHeader } from "@/components/admin/PageHeader";
 import { TestEmailButtons } from "@/components/admin/TestEmailButtons";
 import { RatesForm } from "@/components/admin/RatesForm";
 import { RoomForm } from "@/components/admin/RoomForm";
@@ -30,13 +31,11 @@ export default async function SettingsPage() {
 
   return (
     <div className="space-y-8">
-      <header>
-        <h1 className="text-3xl">Settings</h1>
-        <p className="mt-1.5 text-ink-soft">
-          Your rates and the basics. To change any of these, just ask Claude —
-          for example, &ldquo;change the counselling rate to $150 an hour&rdquo;.
-        </p>
-      </header>
+      <PageHeader
+        eyebrow="The basics"
+        title="Settings"
+        description="Your rates and the basics. To change any of these, just ask Claude — for example, &ldquo;change the counselling rate to $150 an hour&rdquo;."
+      />
 
       <Card>
         <CardHeader

@@ -1,4 +1,5 @@
 import { CalendarCheck, CircleDollarSign, Hourglass } from "lucide-react";
+import { PageHeader } from "@/components/admin/PageHeader";
 import { BookingDecision } from "@/components/admin/BookingActions";
 import { BookingRow } from "@/components/admin/BookingRow";
 import { Stat } from "@/components/admin/Stat";
@@ -42,12 +43,11 @@ export default async function BookingsPage() {
 
   return (
     <div className="space-y-8">
-      <header>
-        <h1 className="text-3xl">Bookings</h1>
-        <p className="mt-1.5 text-ink-soft">
-          Requests to approve, what&rsquo;s coming up, and your room rates.
-        </p>
-      </header>
+      <PageHeader
+        eyebrow="Rooms"
+        title="Bookings"
+        description="Requests to approve, what&rsquo;s coming up, and your room rates."
+      />
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Stat
@@ -80,6 +80,7 @@ export default async function BookingsPage() {
       <Card className={pending.length ? "border-burgundy/25" : undefined}>
         <CardHeader
           title="Requests to approve"
+          tone="warn"
           description="Nothing is confirmed and nobody is charged until you say yes."
         />
         <ul className="divide-y divide-tan/20">

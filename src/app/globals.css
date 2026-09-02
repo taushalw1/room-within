@@ -154,3 +154,16 @@
   body { background: #fff; }
   .no-print { display: none !important; }
 }
+
+@layer components {
+  /*
+   * Admin table rows.
+   *
+   * A faint wash on hover, so the eye can follow a wide row across to the
+   * figures on the right. Rows that have opened an editor underneath keep
+   * their own background, so the hover is scoped to plain rows only.
+   */
+  table tbody tr:hover > td {
+    background-color: color-mix(in srgb, var(--color-sage-pale) 45%, transparent);
+  }
+}

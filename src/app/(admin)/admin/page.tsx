@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { PageHeader } from "@/components/admin/PageHeader";
 import {
   AlertTriangle,
   CalendarClock,
@@ -25,12 +26,11 @@ export default async function AdminDashboard() {
 
   return (
     <div className="space-y-8">
-      <header>
-        <h1 className="text-3xl">Good day, Tausha</h1>
-        <p className="mt-1.5 text-ink-soft">
-          Here&rsquo;s where everything stands today.
-        </p>
-      </header>
+      <PageHeader
+        eyebrow="Room Within"
+        title="Good day, Tausha"
+        description="Here's where everything stands today."
+      />
 
       {/* Headline figures */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">

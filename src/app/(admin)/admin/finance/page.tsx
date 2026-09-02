@@ -1,4 +1,5 @@
 import { HandHeart, PiggyBank, Receipt, TrendingUp } from "lucide-react";
+import { PageHeader } from "@/components/admin/PageHeader";
 import { AddPanel } from "@/components/admin/AddPanel";
 import { ExpenseForm } from "@/components/admin/ExpenseForm";
 import { ExpenseRow } from "@/components/admin/ExpenseRow";
@@ -190,13 +191,11 @@ export default async function FinancePage() {
 
   return (
     <div className="space-y-8">
-      <header>
-        <h1 className="text-3xl">Finance</h1>
-        <p className="mt-1.5 text-ink-soft">
-          Everything that&rsquo;s come in and gone out, across the whole
-          business.
-        </p>
-      </header>
+      <PageHeader
+        eyebrow="The books"
+        title="Finance"
+        description="Everything that&rsquo;s come in and gone out, across the whole business."
+      />
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Stat
@@ -233,6 +232,7 @@ export default async function FinancePage() {
       <Card>
         <CardHeader
           title="The last twelve months"
+          tone="olive"
           description="Money in against money out, month by month."
         />
         <MonthlyChart data={monthly} />

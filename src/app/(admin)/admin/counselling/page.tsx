@@ -1,4 +1,5 @@
 import { CalendarClock, Inbox, Lock, ShieldCheck } from "lucide-react";
+import { PageHeader } from "@/components/admin/PageHeader";
 import { AddPanel } from "@/components/admin/AddPanel";
 import { Stat } from "@/components/admin/Stat";
 import { TaskForm } from "@/components/admin/TaskForm";
@@ -53,22 +54,17 @@ export default async function CounsellingPage() {
 
   return (
     <div className="space-y-8">
-      <header>
-        <div className="flex flex-wrap items-center gap-3">
-          <h1 className="text-3xl">Counselling</h1>
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-blush px-3 py-1">
-            <Lock className="h-3 w-3 text-burgundy" aria-hidden />
-            <span className="eyebrow !text-[0.55rem] text-burgundy">
-              Only you
-            </span>
+      <PageHeader
+        eyebrow="Private"
+        title="Counselling"
+        description="Your appointments, notes and to-do list. Nobody else can open this page — not tenants, not people who book rooms, not other signed-in users."
+        action={
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-cream/15 px-3 py-1">
+            <Lock className="h-3 w-3 text-cream" aria-hidden />
+            <span className="eyebrow !text-[0.55rem] text-cream">Only you</span>
           </span>
-        </div>
-        <p className="mt-1.5 text-ink-soft">
-          Your appointments, notes and to-do list. Nobody else can open this
-          page — not tenants, not people who book rooms, not other signed-in
-          users.
-        </p>
-      </header>
+        }
+      />
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Stat

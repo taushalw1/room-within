@@ -1,4 +1,5 @@
 import { CalendarDays, Eye, PencilLine } from "lucide-react";
+import { PageHeader } from "@/components/admin/PageHeader";
 import { AddPanel } from "@/components/admin/AddPanel";
 import { EventForm } from "@/components/admin/EventForm";
 import { EventRow } from "@/components/admin/EventRow";
@@ -22,19 +23,17 @@ export default async function EventsPage() {
 
   return (
     <div className="space-y-8">
-      <header className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <h1 className="text-3xl">Events</h1>
-          <p className="mt-1.5 text-ink-soft">
-            What goes on the community calendar — here at Room Within or
-            anywhere else in Grassy Lake.
-          </p>
-        </div>
-        <ButtonLink href="/calendar" variant="secondary" size="sm">
-          <Eye className="h-4 w-4" aria-hidden />
-          View public calendar
-        </ButtonLink>
-      </header>
+      <PageHeader
+        eyebrow="What's on"
+        title="Events"
+        description="What goes on the community calendar — here at Room Within or anywhere else in Grassy Lake."
+        action={
+          <ButtonLink href="/calendar" variant="secondary" size="sm">
+            <Eye className="h-4 w-4" aria-hidden />
+            View public calendar
+          </ButtonLink>
+        }
+      />
 
       <div className="grid gap-4 sm:grid-cols-3">
         <Stat

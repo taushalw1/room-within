@@ -1,4 +1,5 @@
 import { AddPanel } from "@/components/admin/AddPanel";
+import { PageHeader } from "@/components/admin/PageHeader";
 import { AddTenantForm } from "@/components/admin/AddTenantForm";
 import { ContactRow } from "@/components/admin/ContactRow";
 import { Card, CardHeader, EmptyRow, Table, Th } from "@/components/ui/Table";
@@ -23,13 +24,11 @@ export default async function ContactsPage() {
 
   return (
     <div className="space-y-8">
-      <header>
-        <h1 className="text-3xl">People</h1>
-        <p className="mt-1.5 text-ink-soft">
-          Everyone you deal with — tenants, people who book rooms, counselling
-          clients and donors.
-        </p>
-      </header>
+      <PageHeader
+        eyebrow="Your community"
+        title="People"
+        description="Everyone you deal with — tenants, people who book rooms, counselling clients and donors."
+      />
 
       <AddPanel
         label="Add someone"

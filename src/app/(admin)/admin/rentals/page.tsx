@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { PageHeader } from "@/components/admin/PageHeader";
 import { Building2 } from "lucide-react";
 import { AddPanel } from "@/components/admin/AddPanel";
 import { GenerateRentButton } from "@/components/admin/GenerateRentButton";
@@ -80,13 +81,11 @@ export default async function RentalsPage({
 
   return (
     <div className="space-y-8">
-      <header>
-        <h1 className="text-3xl">Rentals</h1>
-        <p className="mt-1.5 text-ink-soft">
-          Who&rsquo;s renting what, what&rsquo;s been paid, and what&rsquo;s
-          late.
-        </p>
-      </header>
+      <PageHeader
+        eyebrow="Tenancies"
+        title="Rentals"
+        description="Who&rsquo;s renting what, what&rsquo;s been paid, and what&rsquo;s late."
+      />
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Stat

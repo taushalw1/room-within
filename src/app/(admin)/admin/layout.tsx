@@ -17,7 +17,7 @@ export default async function AdminLayout({
   const user = await requireAdmin();
 
   return (
-    <div className="flex min-h-dvh flex-col bg-cream lg:flex-row">
+    <div className="flex min-h-dvh flex-col bg-parchment lg:flex-row">
       <AdminNav />
 
       <div className="min-w-0 flex-1">

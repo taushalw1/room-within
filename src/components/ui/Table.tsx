@@ -23,23 +23,62 @@ export function Card({
   );
 }
 
+type HeaderTone = "default" | "sage" | "olive" | "warn" | "plain";
+
+/**
+ * The band at the top of a card.
+ *
+ * Tinted rather than plain, because an admin page is a long stack of cards and
+ * on a cream background they ran together — everything was one undivided
+ * sheet. A coloured band and a stripe down the left edge give each section a
+ * visible beginning, using the same tones as the public site: sage for
+ * ordinary sections, olive for the important one on a page, blush where
+ * something needs attention.
+ */
 export function CardHeader({
   title,
   action,
   description,
+  tone = "default",
 }: {
   title: string;
   description?: string;
   action?: React.ReactNode;
+  tone?: HeaderTone;
 }) {
+  const tones: Record<HeaderTone, string> = {
+    default: "bg-sage-pale/50 border-sage/30",
+    sage: "bg-sage-pale/50 border-sage/30",
+    olive: "bg-olive text-cream border-olive-deep/40",
+    warn: "bg-blush/70 border-burgundy/25",
+    plain: "bg-parchment/70 border-tan/25",
+  };
+
+  const titleTone =
+    tone === "olive"
+      ? "text-cream"
+      : tone === "warn"
+        ? "text-burgundy"
+        : "text-olive-deep";
+
+  const descTone = tone === "olive" ? "text-cream/80" : "text-ink-soft";
+
   return (
-    <div className="flex items-start justify-between gap-4 border-b border-tan/20 px-5 py-4">
+    <div
+      className={cn(
+        "flex items-start justify-between gap-4 border-b px-5 py-4",
+        // Rounded to match the card it sits inside, or the tint bleeds past
+        // the corner.
+        "rounded-t-[var(--radius-card)]",
+        tones[tone],
+      )}
+    >
       <div>
-        <h2 className="font-display text-lg font-semibold text-olive-deep">
+        <h2 className={cn("font-display text-lg font-semibold", titleTone)}>
           {title}
         </h2>
         {description && (
-          <p className="mt-0.5 text-sm text-ink-soft">{description}</p>
+          <p className={cn("mt-0.5 text-sm", descTone)}>{description}</p>
         )}
       </div>
       {action}
@@ -70,7 +109,10 @@ export function Th({
     <th
       scope="col"
       className={cn(
-        "eyebrow border-b border-tan/25 px-4 py-3 !text-[0.62rem] text-bark",
+        "eyebrow border-b border-tan/30 bg-parchment/60 px-4 py-3 !text-[0.62rem] text-bark",
+        // First and last cells round with the table when it sits directly
+        // under a card header.
+        "first:rounded-tl-none last:rounded-tr-none",
         align === "right" && "text-right",
         align === "center" && "text-center",
         align === "left" && "text-left",

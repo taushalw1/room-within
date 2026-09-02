@@ -1,4 +1,5 @@
 import { CircleDollarSign, Coins, TicketPercent, Users } from "lucide-react";
+import { PageHeader } from "@/components/admin/PageHeader";
 import { AddPanel } from "@/components/admin/AddPanel";
 import { RunButton } from "@/components/admin/RunButton";
 import { Stat } from "@/components/admin/Stat";
@@ -60,12 +61,11 @@ export default async function MembersPage() {
 
   return (
     <div className="space-y-8">
-      <header>
-        <h1 className="text-3xl">Members</h1>
-        <p className="mt-1.5 text-ink-soft">
-          Community plans, and the credits people have to spend on classes.
-        </p>
-      </header>
+      <PageHeader
+        eyebrow="Programs"
+        title="Members"
+        description="Community plans, and the credits people have to spend on classes."
+      />
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Stat
@@ -98,6 +98,7 @@ export default async function MembersPage() {
       <Card className="bg-parchment/40">
         <CardHeader
           title="Credits sold are not money earned"
+          tone="olive"
           description="Somebody who buys eight credits has paid for eight classes you haven't taught yet. Until they turn up, that money is a promise. It's worth keeping enough back to cover it."
         />
         <div className="px-5 pb-5">
@@ -115,7 +116,8 @@ export default async function MembersPage() {
 
       {warnings.length > 0 && (
         <Card className="border-burgundy/25 bg-blush/30">
-          <CardHeader title="Worth a look at the pricing" />
+          <CardHeader title="Worth a look at the pricing"
+          tone="warn" />
           <ul className="space-y-2 px-5 pb-5 text-sm text-ink-soft">
             {warnings.map((w) => (
               <li key={w}>{w}</li>
