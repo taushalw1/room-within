@@ -12,6 +12,8 @@ import {
   CreditSettingsForm,
 } from "@/components/admin/ClassSettingsForms";
 import { getClassSettings, getCreditSettings } from "@/lib/data/classes";
+import { getResearchSettings } from "@/lib/data/opportunities";
+import { ResearchSettingsForm } from "@/components/admin/ResearchSettingsForm";
 import { getRooms } from "@/lib/data/public";
 import { getRates, getUnits } from "@/lib/data/admin";
 import { getCurrentUser } from "@/lib/auth";
@@ -19,7 +21,7 @@ import { money } from "@/lib/format";
 import { site } from "@/lib/site";
 
 export default async function SettingsPage() {
-  const [rooms, units, rates, user, classSettings, creditSettings] =
+  const [rooms, units, rates, user, classSettings, creditSettings, researchSettings] =
     await Promise.all([
       getRooms(),
       getUnits(),
@@ -27,6 +29,7 @@ export default async function SettingsPage() {
       getCurrentUser(),
       getClassSettings(),
       getCreditSettings(),
+      getResearchSettings(),
     ]);
 
   return (
@@ -124,6 +127,16 @@ export default async function SettingsPage() {
         />
         <div className="px-5 py-5">
           <CreditSettingsForm settings={creditSettings} />
+        </div>
+      </Card>
+
+      <Card>
+        <CardHeader
+          title="Looking for grants and events"
+          description="What the Monday search is told to hunt for."
+        />
+        <div className="px-5 py-5">
+          <ResearchSettingsForm settings={researchSettings} />
         </div>
       </Card>
 

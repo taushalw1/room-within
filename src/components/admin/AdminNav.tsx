@@ -15,6 +15,8 @@ import {
   Award,
   Coins,
   GraduationCap,
+  Landmark,
+  Plane,
 } from "lucide-react";
 import { LogoLockup } from "@/components/brand/Logo";
 import { cn } from "@/lib/cn";
@@ -28,6 +30,8 @@ const links = [
   { href: "/admin/members", label: "Members", icon: Coins },
   { href: "/admin/events", label: "Events", icon: CalendarPlus },
   { href: "/admin/finance", label: "Finance", icon: Wallet },
+  { href: "/admin/grants", label: "Grants", icon: Landmark },
+  { href: "/admin/conferences", label: "Conferences", icon: Plane },
   { href: "/admin/counselling", label: "Counselling", icon: NotebookPen },
   { href: "/admin/contacts", label: "People", icon: Users },
   { href: "/admin/settings", label: "Settings", icon: Settings },

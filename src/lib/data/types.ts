@@ -374,3 +374,81 @@ export type CreditSettings = {
   rollover_months: number;
   family_same_class_cap: number;
 };
+
+/* ---------------------------------------------------------------------------
+   Grants and conferences
+   --------------------------------------------------------------------------- */
+
+export type OpportunityKind = "grant" | "conference";
+
+export type OpportunityStatus =
+  | "new"
+  | "interested"
+  | "not_interested"
+  | "applied"
+  | "awarded"
+  | "rejected";
+
+export type OpportunityRow = {
+  id: string;
+  kind: OpportunityKind;
+  title: string;
+  organisation: string | null;
+  summary: string | null;
+  url: string | null;
+  why_relevant: string | null;
+
+  amount_min_cents: number | null;
+  amount_max_cents: number | null;
+  deadline: string | null;
+  eligibility: string | null;
+  covers_travel: boolean;
+
+  starts_on: string | null;
+  ends_on: string | null;
+  location: string | null;
+  is_online: boolean;
+  cost_cents: number | null;
+  cost_note: string | null;
+
+  status: OpportunityStatus;
+  archived_at: string | null;
+  notes: string | null;
+
+  source: "search" | "manual";
+  confidence: "high" | "medium" | "low" | null;
+  verified_at: string | null;
+  found_at: string;
+  fingerprint: string;
+  created_at: string;
+};
+
+export type OpportunityStepRow = {
+  id: string;
+  opportunity_id: string;
+  position: number;
+  title: string;
+  detail: string | null;
+  done_at: string | null;
+  created_at: string;
+};
+
+export type ResearchRunRow = {
+  id: string;
+  kind: OpportunityKind;
+  started_at: string;
+  finished_at: string | null;
+  found: number;
+  added: number;
+  status: "running" | "ok" | "failed" | "skipped";
+  message: string | null;
+};
+
+/** Editable in /admin/settings; defaults live in migration 0006. */
+export type ResearchSettings = {
+  enabled: boolean;
+  profile: string;
+  grant_notes: string;
+  conference_notes: string;
+  max_results: number;
+};

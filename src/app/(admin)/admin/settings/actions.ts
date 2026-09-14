@@ -527,3 +527,65 @@ export async function updateCreditSettings(
       : "Saved. Existing members keep their current price until you change theirs.",
   };
 }
+
+/* ---------------------------------------------------------------------------
+   What the weekly search looks for
+   --------------------------------------------------------------------------- */
+
+const researchSchema = z.object({
+  enabled: z.coerce.boolean().optional(),
+  profile: z.string().trim().min(40, "Say a bit more about the place — the search uses this to judge what fits."),
+  grantNotes: z.string().trim().max(2000),
+  conferenceNotes: z.string().trim().max(2000),
+  maxResults: z.coerce.number().int().min(1).max(30),
+});
+
+export async function updateResearchSettings(
+  _prev: ActionResult | null,
+  formData: FormData,
+): Promise<ActionResult> {
+  await requireAdmin();
+  if (isDemoMode) return DEMO_RESULT;
+
+  const parsed = researchSchema.safeParse({
+    enabled: formData.get("enabled") === "on",
+    profile: formData.get("profile"),
+    grantNotes: formData.get("grantNotes"),
+    conferenceNotes: formData.get("conferenceNotes"),
+    maxResults: formData.get("maxResults"),
+  });
+
+  if (!parsed.success) {
+    return { ok: false, message: parsed.error.issues[0].message };
+  }
+
+  const supabase = await getServerSupabase();
+  if (!supabase) return { ok: false, message: "No database connection." };
+
+  const { error } = await supabase.from("settings").upsert(
+    {
+      key: "research",
+      value: {
+        enabled: Boolean(parsed.data.enabled),
+        profile: parsed.data.profile,
+        grant_notes: parsed.data.grantNotes,
+        conference_notes: parsed.data.conferenceNotes,
+        max_results: parsed.data.maxResults,
+      },
+      updated_at: new Date().toISOString(),
+    },
+    { onConflict: "key" },
+  );
+
+  if (error) return { ok: false, message: `Couldn't save that: ${error.message}` };
+
+  revalidatePath("/admin/grants");
+  revalidatePath("/admin/conferences");
+
+  return {
+    ok: true,
+    message: parsed.data.enabled
+      ? "Saved. The next Monday search will use this."
+      : "Saved, and the weekly search is switched off.",
+  };
+}
