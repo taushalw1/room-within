@@ -22,7 +22,8 @@ export default function LoginPage() {
           <h1 className="mt-8 text-center text-3xl">Sign in</h1>
           <p className="mt-3 text-center text-sm leading-relaxed text-ink-soft">
             For tenants, room bookers, and Tausha. We&rsquo;ll email you a link
-            to sign in — there&rsquo;s no password to remember.
+            to sign in — there&rsquo;s no password to remember, and this
+            device stays signed in afterwards.
           </p>
 
           <div className="mt-8 rounded-[var(--radius-card)] border border-tan/25 bg-parchment/40 p-6 sm:p-8">

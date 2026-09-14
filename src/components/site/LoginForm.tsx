@@ -70,6 +70,10 @@ export function LoginForm() {
           We&rsquo;ve sent a sign-in link to <strong>{email}</strong>. It works
           once, and expires after an hour.
         </p>
+        <p className="mt-3 text-sm text-ink-soft">
+          Open it on this device and you&rsquo;ll stay signed in here —
+          you won&rsquo;t have to do this again.
+        </p>
       </div>
     );
   }
