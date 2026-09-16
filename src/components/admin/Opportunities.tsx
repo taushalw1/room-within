@@ -98,17 +98,31 @@ export function OpportunityListRow({
           {o.kind === "grant"
             ? o.deadline
               ? dateShort(o.deadline)
-              : "—"
+              : o.deadline_note
+                ? "Rolling"
+                : "—"
             : o.starts_on
               ? dateShort(o.starts_on)
               : "—"}
         </span>
         <span className="block text-xs text-ink-faint">
           {o.kind === "grant"
-            ? deadlineNote(o.deadline)
+            ? o.deadline
+              ? deadlineNote(o.deadline)
+              : (o.deadline_note ?? deadlineNote(null))
             : deadlineNote(o.starts_on)}
         </span>
       </Td>
+
+      {o.kind === "grant" && (
+        <Td align="right">
+          {o.probability != null ? (
+            <span className="text-sm">{o.probability}%</span>
+          ) : (
+            <span className="text-ink-faint">—</span>
+          )}
+        </Td>
+      )}
 
       <Td align="right">
         {progress && progress.total > 0 ? (

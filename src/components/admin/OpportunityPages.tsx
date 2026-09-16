@@ -104,6 +104,18 @@ export function OpportunityIndex({
 
   const lastRun = runs.find((r) => r.kind === kind);
 
+  const weighted =
+    kind === "grant"
+      ? live
+          .filter((o) => o.status !== "not_interested" && o.status !== "rejected")
+          .reduce(
+            (sum, o) =>
+              sum +
+              Math.round(((o.amount_max_cents ?? 0) * (o.probability ?? 0)) / 100),
+            0,
+          )
+      : 0;
+
   return (
     <div className="space-y-8">
       <PageHeader
@@ -132,11 +144,20 @@ export function OpportunityIndex({
           sub={kind === "grant" ? "Deadlines coming up" : "Happening soon"}
           tone={soon.length > 0 ? "bad" : "default"}
         />
-        <Stat
-          label="Not checked yet"
-          value={String(unchecked.length)}
-          sub="Found automatically, unverified"
-        />
+        {kind === "grant" && weighted > 0 ? (
+          <Stat
+            label="Pipeline worth"
+            value={money(weighted)}
+            sub="Each amount times its chance"
+            icon={Coins}
+          />
+        ) : (
+          <Stat
+            label="Not checked yet"
+            value={String(unchecked.length)}
+            sub="Found automatically, unverified"
+          />
+        )}
       </div>
 
       {/* ---------- The weekly search ---------- */}
@@ -241,6 +262,7 @@ function OpportunityTable({
             {words.middleColumn}
           </Th>
           <Th>{words.dateColumn}</Th>
+          {kind === "grant" && <Th align="right">Chance</Th>}
           <Th align="right">Steps</Th>
           <Th align="right">Where it stands</Th>
           <Th align="right" />
@@ -248,7 +270,7 @@ function OpportunityTable({
       </thead>
       <tbody>
         {rows.length === 0 ? (
-          <EmptyRow colSpan={6}>
+          <EmptyRow colSpan={kind === "grant" ? 7 : 6}>
             Nothing here yet. The Monday search will fill this in, or add
             something yourself below.
           </EmptyRow>
@@ -322,9 +344,25 @@ export function OpportunityDetail({
               <Fact label="How much" value={amountRange(o, moneyExact) ?? "Not stated"} />
               <Fact
                 label="Closing date"
-                value={o.deadline ? dateShort(o.deadline) : "None given"}
-                note={deadlineNote(o.deadline)}
+                value={
+                  o.deadline
+                    ? dateShort(o.deadline)
+                    : (o.deadline_note ?? "None given")
+                }
+                note={o.deadline ? deadlineNote(o.deadline) : undefined}
               />
+              {o.probability != null && (
+                <Fact
+                  label="Chance of getting it"
+                  value={`${o.probability}%`}
+                  note={
+                    o.amount_max_cents != null
+                      ? `Worth about ${money(Math.round((o.amount_max_cents * o.probability) / 100))} weighted`
+                      : undefined
+                  }
+                />
+              )}
+              {o.owner && <Fact label="Whose job" value={o.owner} />}
               <Fact
                 label="Who may apply"
                 value={o.eligibility ?? "Not stated on the page"}
@@ -365,6 +403,10 @@ export function OpportunityDetail({
 
           {o.why_relevant && (
             <Fact label="Why it was flagged" value={o.why_relevant} wide />
+          )}
+
+          {o.next_action && (
+            <Fact label="The next thing to do" value={o.next_action} wide />
           )}
         </dl>
 

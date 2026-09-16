@@ -415,6 +415,13 @@ export type OpportunityRow = {
   archived_at: string | null;
   notes: string | null;
 
+  /** Her own estimate of the chance of getting it, 0-100. */
+  probability: number | null;
+  owner: string | null;
+  next_action: string | null;
+  /** For rolling intakes, where a sentence is more honest than a date. */
+  deadline_note: string | null;
+
   source: "search" | "manual";
   confidence: "high" | "medium" | "low" | null;
   verified_at: string | null;
@@ -451,4 +458,47 @@ export type ResearchSettings = {
   grant_notes: string;
   conference_notes: string;
   max_results: number;
+};
+
+/* ---------------------------------------------------------------------------
+   The project plan
+   --------------------------------------------------------------------------- */
+
+export type GateStatus = "not_started" | "in_progress" | "passed";
+
+export type ProjectGateRow = {
+  id: string;
+  position: number;
+  decision: string;
+  conditions: string;
+  owner: string | null;
+  evidence: string | null;
+  target_on: string | null;
+  status: GateStatus;
+  risk_if_skipped: string | null;
+  passed_on: string | null;
+  notes: string | null;
+  created_at: string;
+};
+
+export type TaskPriority = "critical" | "high" | "medium" | "low";
+export type ProjectTaskStatus = "todo" | "doing" | "blocked" | "done";
+
+export type ProjectTaskRow = {
+  id: string;
+  ref: string | null;
+  phase: string;
+  workstream: string | null;
+  title: string;
+  why: string | null;
+  owner: string | null;
+  priority: TaskPriority;
+  status: ProjectTaskStatus;
+  starts_on: string | null;
+  due_on: string | null;
+  dependency: string | null;
+  next_action: string | null;
+  notes: string | null;
+  done_at: string | null;
+  created_at: string;
 };

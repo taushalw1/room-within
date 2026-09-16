@@ -23,15 +23,32 @@ export function toCents(input: string | number) {
   return Number.isFinite(n) ? Math.round(n * 100) : 0;
 }
 
+/**
+ * Turn a stored value into a Date for display.
+ *
+ * A bare "2026-09-15" — which is how Postgres hands back a `date` column — is
+ * parsed by JavaScript as midnight *UTC*. Formatting that anywhere west of
+ * Greenwich renders the day before: an invoice due on the 15th showed as the
+ * 14th, and a deadline could look a day closer than it is. Bare dates are
+ * therefore read as local midnight, which is what the person who typed them
+ * meant. Full timestamps still carry their own zone and are left alone.
+ */
+const DATE_ONLY = /^[0-9]{4}-[0-9]{2}-[0-9]{2}$/;
+
+function asDate(d: Date | string): Date {
+  if (typeof d === "string" && DATE_ONLY.test(d)) return new Date(`${d}T00:00:00`);
+  return new Date(d);
+}
+
 export const dateLong = (d: Date | string) =>
-  format(new Date(d), "EEEE, d MMMM yyyy");
+  format(asDate(d), "EEEE, d MMMM yyyy");
 
-export const dateShort = (d: Date | string) => format(new Date(d), "d MMM yyyy");
+export const dateShort = (d: Date | string) => format(asDate(d), "d MMM yyyy");
 
-export const timeOnly = (d: Date | string) => format(new Date(d), "h:mm a");
+export const timeOnly = (d: Date | string) => format(asDate(d), "h:mm a");
 
 export const relative = (d: Date | string) =>
-  formatDistanceToNowStrict(new Date(d), { addSuffix: true });
+  formatDistanceToNowStrict(asDate(d), { addSuffix: true });
 
 /**
  * "Sat 14 Jun · 7:00–9:00 PM", collapsing the date when it doesn't change.

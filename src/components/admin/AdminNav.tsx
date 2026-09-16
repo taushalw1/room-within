@@ -14,6 +14,7 @@ import {
   Wallet,
   Award,
   Coins,
+  Flag,
   GraduationCap,
   Landmark,
   Plane,
@@ -23,6 +24,7 @@ import { cn } from "@/lib/cn";
 
 const links = [
   { href: "/admin", label: "Dashboard", icon: Home, exact: true },
+  { href: "/admin/plan", label: "The plan", icon: Flag },
   { href: "/admin/rentals", label: "Rentals", icon: KeyRound },
   { href: "/admin/bookings", label: "Bookings", icon: CalendarDays },
   { href: "/admin/classes", label: "Classes", icon: GraduationCap },
