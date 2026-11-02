@@ -10,6 +10,7 @@ import {
   Wallet,
 } from "lucide-react";
 import { Stat } from "@/components/admin/Stat";
+import { WhatsNewNudge } from "@/components/admin/WhatsNewNudge";
 import { Badge, Card, CardHeader, Table, Td, Th, EmptyRow } from "@/components/ui/Table";
 import { ButtonLink } from "@/components/ui/Button";
 import { getContactNameMap, getDashboard, getRoomNameMap } from "@/lib/data/admin";
@@ -31,6 +32,8 @@ export default async function AdminDashboard() {
         title="Good day, Tausha"
         description="Here's where everything stands today."
       />
+
+      <WhatsNewNudge />
 
       {/* Headline figures */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">

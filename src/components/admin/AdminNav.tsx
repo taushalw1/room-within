@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
+import { latestUpdate } from "@/content/updates";
 import {
   CalendarDays,
   CalendarPlus,
@@ -22,6 +24,7 @@ import {
   UserRound,
   Hammer,
   History,
+  Sparkles,
 } from "lucide-react";
 import { LogoLockup } from "@/components/brand/Logo";
 import { cn } from "@/lib/cn";
@@ -42,12 +45,34 @@ const links = [
   { href: "/admin/conferences", label: "Conferences", icon: Plane },
   { href: "/admin/counselling", label: "Counselling", icon: NotebookPen },
   { href: "/admin/contacts", label: "People", icon: Users },
-  { href: "/admin/history", label: "What changed", icon: History },
+  { href: "/admin/history", label: "Record of changes", icon: History },
   { href: "/admin/settings", label: "Settings", icon: Settings },
+  { href: "/admin/whats-new", label: "What's new", icon: Sparkles, badge: true },
 ];
 
 export function AdminNav() {
   const pathname = usePathname();
+  const [unseen, setUnseen] = useState(false);
+
+  // A quiet dot beside "What's new" when something has shipped since she last
+  // looked. In the browser rather than the database: it is a convenience, not
+  // a fact worth keeping about somebody, and a new phone showing it once
+  // costs nothing.
+  useEffect(() => {
+    const check = () => {
+      try {
+        setUnseen(
+          window.localStorage.getItem("roomwithin:updates-seen") !== latestUpdate,
+        );
+      } catch {
+        setUnseen(false);
+      }
+    };
+
+    check();
+    window.addEventListener("roomwithin:updates-seen", check);
+    return () => window.removeEventListener("roomwithin:updates-seen", check);
+  }, []);
 
   return (
     <nav
@@ -58,7 +83,7 @@ export function AdminNav() {
         <LogoLockup className="h-10" />
       </Link>
 
-      {links.map(({ href, label, icon: Icon, exact }) => {
+      {links.map(({ href, label, icon: Icon, exact, badge }) => {
         const active = exact ? pathname === href : pathname.startsWith(href);
         return (
           <Link
@@ -74,6 +99,15 @@ export function AdminNav() {
           >
             <Icon className="h-4 w-4 shrink-0" aria-hidden />
             {label}
+            {badge && unseen && (
+              <span
+                className={cn(
+                  "ml-auto h-2 w-2 shrink-0 rounded-full",
+                  active ? "bg-cream" : "bg-burgundy",
+                )}
+                aria-label="Something new"
+              />
+            )}
           </Link>
         );
       })}

@@ -45,6 +45,20 @@ When she says *"publish"*, *"put it live"*, *"make it live"*, or similar:
 If the build can't be fixed in a couple of attempts, say: *"Something's broken
 that I can't fix safely — best to ask Tyler to take a look."* Don't push.
 
+### Telling her what changed
+
+When something reaches the live site, add an entry at the top of
+`src/content/updates.ts`. It is what she sees on **What's new**, and a dot
+appears beside it in her menu until she has read it.
+
+Write it for her, not for a developer: what she can now *do*, in plain words,
+with no file names and no jargon. If it needs a decision from her or something
+switched on, put that in `needsYou` rather than leaving it to be discovered.
+Group a day's work into a few entries rather than one per commit.
+
+This lives next to the code so the two ship together. An entry written later,
+separately, is an entry that quietly stops matching the app.
+
 ### Before you finish any task
 
 Run **`npm run check`**. If it fails, fix it before telling her you're done. A

@@ -7,7 +7,7 @@ import { getAuditTables, getAuditTrail } from "@/lib/data/audit";
 import { actorLabel, describe, headline, tableLabel } from "@/lib/audit";
 import { cn } from "@/lib/cn";
 
-export const metadata = { title: "What changed" };
+export const metadata = { title: "Record of changes" };
 
 function when(iso: string): string {
   const then = new Date(iso);
@@ -44,8 +44,8 @@ export default async function HistoryPage({
     <div className="space-y-8">
       <PageHeader
         eyebrow="A record"
-        title="What changed"
-        description="Every change to the money and the tenancies, who made it and when. Written by the database itself, and it cannot be edited or removed afterwards — not from here, not from anywhere."
+        title="Record of changes"
+        description="Every change to the money and the tenancies — who made it and when. This is about your records, not about the app: for what has been added or improved in the app itself, see What's new."
       />
 
       <Card>
