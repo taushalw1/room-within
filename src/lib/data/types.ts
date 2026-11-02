@@ -88,6 +88,15 @@ export type LeaseRow = {
   due_day: number;
   status: "pending" | "active" | "ended";
   notes: string | null;
+  /* Written down at move-in; all of it wanted at an awkward moment later. */
+  emergency_name: string | null;
+  emergency_phone: string | null;
+  emergency_relationship: string | null;
+  keys_issued: number | null;
+  vehicle: string | null;
+  parking_stall: string | null;
+  other_occupants: string | null;
+  from_waiting_list: string | null;
 };
 
 export type InvoiceState = "draft" | "outstanding" | "overdue" | "paid" | "void";

@@ -15,7 +15,7 @@ import {
   getMoveOut,
   getSignatureEvent,
 } from "@/lib/data/move-out";
-import { getContactNameMap, getUnits } from "@/lib/data/admin";
+import { getAllLeases, getContactNameMap, getUnits } from "@/lib/data/admin";
 import { signedUrl } from "@/lib/maintenance-files";
 import { signatureUrl } from "@/lib/signature-files";
 import { dateShort, moneyExact } from "@/lib/format";
@@ -42,12 +42,15 @@ export default async function MoveOutPage({
 
   const { moveOut, items } = found;
 
-  const [names, units, entries, signature] = await Promise.all([
+  const [names, units, entries, signature, leases] = await Promise.all([
     getContactNameMap(),
     getUnits(),
     getDepositEntries(moveOut.lease_id),
     getSignatureEvent(moveOut.tenant_signature_event),
+    getAllLeases(),
   ]);
+
+  const lease = leases.find((l) => l.id === moveOut.lease_id) ?? null;
 
   const evidenceUrls = await Promise.all(
     entries.map((e) => signedUrl(e.evidence_path)),
@@ -80,6 +83,49 @@ export default async function MoveOutPage({
           </Link>
         }
       />
+
+      {/* ---------- What was written down at the start ---------- */}
+      {lease && (lease.keys_issued != null || lease.vehicle || lease.other_occupants || lease.emergency_phone) && (
+        <Card>
+          <CardHeader
+            title="From when they moved in"
+            description="Worth having in front of you at the walk-through."
+          />
+          <dl className="grid gap-x-8 gap-y-3 px-5 py-5 text-sm sm:grid-cols-2">
+            {lease.keys_issued != null && (
+              <div>
+                <dt className="eyebrow !text-[0.58rem] text-bark">Keys handed over</dt>
+                <dd className="text-ink">
+                  {lease.keys_issued} — count them back before you settle.
+                </dd>
+              </div>
+            )}
+            {lease.vehicle && (
+              <div>
+                <dt className="eyebrow !text-[0.58rem] text-bark">Vehicle</dt>
+                <dd className="text-ink">
+                  {lease.vehicle}
+                  {lease.parking_stall ? ` · stall ${lease.parking_stall}` : ""}
+                </dd>
+              </div>
+            )}
+            {lease.other_occupants && (
+              <div>
+                <dt className="eyebrow !text-[0.58rem] text-bark">Who else was there</dt>
+                <dd className="text-ink">{lease.other_occupants}</dd>
+              </div>
+            )}
+            {lease.emergency_phone && (
+              <div>
+                <dt className="eyebrow !text-[0.58rem] text-bark">Emergency contact</dt>
+                <dd className="text-ink">
+                  {lease.emergency_name ?? "Contact"} {lease.emergency_phone}
+                </dd>
+              </div>
+            )}
+          </dl>
+        </Card>
+      )}
 
       {/* ---------- What they signed ---------- */}
       <Card>

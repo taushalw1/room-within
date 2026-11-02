@@ -41,10 +41,33 @@ export const sampleUnits: UnitRow[] = [
   { id: "u4", name: "Suite 2", kind: "suite", floor: "Upper", description: "Studio suite with the outside stair.", monthly_rate_cents: 85000, is_active: true, sort_order: 4 },
 ];
 
+/** The move-in details, so a sample tenancy looks like a real one. */
+const movedIn = (over: Partial<LeaseRow> = {}): Pick<
+  LeaseRow,
+  | "emergency_name"
+  | "emergency_phone"
+  | "emergency_relationship"
+  | "keys_issued"
+  | "vehicle"
+  | "parking_stall"
+  | "other_occupants"
+  | "from_waiting_list"
+> => ({
+  emergency_name: null,
+  emergency_phone: null,
+  emergency_relationship: null,
+  keys_issued: null,
+  vehicle: null,
+  parking_stall: null,
+  other_occupants: null,
+  from_waiting_list: null,
+  ...over,
+});
+
 export const sampleLeases: LeaseRow[] = [
-  { id: "l1", unit_id: "u1", contact_id: "c1", start_date: day(-400), end_date: null, rent_cents: 65000, deposit_cents: 65000, due_day: 1, status: "active", notes: null },
-  { id: "l2", unit_id: "u2", contact_id: "c2", start_date: day(-280), end_date: null, rent_cents: 55000, deposit_cents: 55000, due_day: 1, status: "active", notes: null },
-  { id: "l3", unit_id: "u4", contact_id: "c3", start_date: day(-190), end_date: null, rent_cents: 85000, deposit_cents: 85000, due_day: 1, status: "active", notes: "Rent reviewed each January." },
+  { id: "l1", unit_id: "u1", contact_id: "c1", start_date: day(-400), end_date: null, rent_cents: 65000, deposit_cents: 65000, due_day: 1, status: "active", notes: null, ...movedIn({ emergency_name: "Ruth Devereux", emergency_phone: "403-555-0107", emergency_relationship: "Mother", keys_issued: 2, vehicle: "Grey Subaru Outback", parking_stall: "1" }) },
+  { id: "l2", unit_id: "u2", contact_id: "c2", start_date: day(-280), end_date: null, rent_cents: 55000, deposit_cents: 55000, due_day: 1, status: "active", notes: null, ...movedIn({ emergency_name: "Sam Ferrand", emergency_phone: "403-555-0133", emergency_relationship: "Brother", keys_issued: 2 }) },
+  { id: "l3", unit_id: "u4", contact_id: "c3", start_date: day(-190), end_date: null, rent_cents: 85000, deposit_cents: 85000, due_day: 1, status: "active", notes: "Rent reviewed each January.", ...movedIn({ keys_issued: 3, other_occupants: "Partner, and a cat." }) },
 ];
 
 /** Helper that fills in the computed columns the `invoice_balances` view adds. */

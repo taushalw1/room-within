@@ -1,7 +1,8 @@
 import Link from "next/link";
+import { ButtonLink } from "@/components/ui/Button";
 import { getOccupancy } from "@/lib/data/maintenance";
 import { PageHeader } from "@/components/admin/PageHeader";
-import { Building2 } from "lucide-react";
+import { Building2, UserPlus } from "lucide-react";
 import { AddPanel } from "@/components/admin/AddPanel";
 import { GenerateRentButton } from "@/components/admin/GenerateRentButton";
 import { InvoiceForm } from "@/components/admin/InvoiceForm";
@@ -160,6 +161,16 @@ export default async function RentalsPage({
                         {o.occupant.phone}
                       </span>
                     )}
+                    {/* The number nobody looks up until eleven at night. */}
+                    {o.lease?.emergency_phone && (
+                      <span className="mt-1 block text-xs text-burgundy">
+                        In an emergency: {o.lease.emergency_name ?? "contact"}
+                        {o.lease.emergency_relationship
+                          ? ` (${o.lease.emergency_relationship})`
+                          : ""}{" "}
+                        {o.lease.emergency_phone}
+                      </span>
+                    )}
                     {!o.occupant && <span className="text-ink-faint">—</span>}
                   </Td>
                   <Td align="right">
@@ -222,9 +233,25 @@ export default async function RentalsPage({
         />
       </div>
 
+      {/* The one that matters most has its own page and its own button,
+          rather than being a panel to find among the others. */}
+      <Card>
+        <CardHeader
+          title="Somebody moving in?"
+          tone="olive"
+          description="One screen for a new renter: who they are, the tenancy, the deposit, the keys, the emergency contact — and their first invoice raised at the end of it."
+        />
+        <div className="px-5 py-5">
+          <ButtonLink href="/admin/rentals/new">
+            <UserPlus className="h-4 w-4" aria-hidden />
+            Move somebody in
+          </ButtonLink>
+        </div>
+      </Card>
+
       <AddPanel
-        label="Add a tenant"
-        description="Adds them to your people list, and sets up a lease if they're renting a unit."
+        label="Add somebody who isn't renting"
+        description="Just onto your people list — a donor, an enquirer, somebody who books the hall."
       >
         <AddTenantForm units={units} />
       </AddPanel>
