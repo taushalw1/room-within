@@ -143,3 +143,57 @@ export async function deleteExpense(
   revalidateFinanceViews();
   return { ok: true, message: "Cost deleted." };
 }
+
+/**
+ * Read a photographed receipt and hand the fields back to the form.
+ *
+ * Saves nothing. The whole value is in not typing, and the whole risk is in a
+ * misread total being saved without anybody looking at it — so this fills the
+ * boxes and stops, and Tausha presses the button as she would have anyway.
+ */
+export async function readReceiptPhoto(
+  _prev: unknown,
+  formData: FormData,
+): Promise<
+  | { ok: true; reading: import("@/lib/receipts").ReceiptReading }
+  | { ok: false; message: string }
+> {
+  await requireAdmin();
+
+  const file = formData.get("receipt");
+  if (!(file instanceof File) || file.size === 0) {
+    return { ok: false, message: "No photo came through." };
+  }
+
+  const { readReceipt } = await import("@/lib/receipts");
+
+  // The categories she already uses come first, so a receipt is filed the way
+  // she files things rather than the way a model would guess.
+  const supabase = await getServerSupabase();
+  const { data } = (await supabase?.from("expenses").select("category")) ?? {
+    data: null,
+  };
+  const used = [
+    ...new Set(((data as { category: string }[]) ?? []).map((e) => e.category)),
+  ];
+
+  const categories = [
+    ...new Set([
+      ...used,
+      "Repairs",
+      "Utilities",
+      "Insurance",
+      "Cleaning",
+      "Supplies",
+      "Professional fees",
+      "Property tax",
+      "Other",
+    ]),
+  ];
+
+  const result = await readReceipt(file, categories);
+
+  return result.ok
+    ? { ok: true, reading: result.reading }
+    : { ok: false, message: result.reason };
+}
