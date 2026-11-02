@@ -23,6 +23,8 @@ import { creditBalance } from "@/lib/credits";
 import { getMaintenance, getMyLease } from "@/lib/data/maintenance";
 import { signedUrl } from "@/lib/maintenance-files";
 import { MyRequest, ReportIssueForm } from "@/components/site/MaintenanceForms";
+import { SignaturePad } from "@/components/site/SignaturePad";
+import { signatureUrl } from "@/lib/signature-files";
 import { site } from "@/lib/site";
 
 export const metadata: Metadata = {
@@ -70,6 +72,25 @@ export default async function PortalPage() {
   }
 
   const tenancy = await getMyLease(user.contactId);
+
+  // Their drawn signature, if they've added one.
+  let mySignature: { url: string | null; createdAt: string } | null = null;
+  {
+    const supabase = await getServerSupabase();
+    const { data } = (await supabase
+      ?.from("signatures")
+      .select("image_path, created_at")
+      .eq("profile_id", user.id)
+      .maybeSingle()) ?? { data: null };
+
+    const row = data as { image_path: string; created_at: string } | null;
+    if (row) {
+      mySignature = {
+        url: await signatureUrl(row.image_path),
+        createdAt: row.created_at,
+      };
+    }
+  }
   const myRequests = user.contactId ? await getMaintenance() : [];
   const requestPhotos = await Promise.all(
     myRequests.map((r) => signedUrl(r.photo_path)),
@@ -242,6 +263,17 @@ export default async function PortalPage() {
               ))}
             </ul>
           )}
+        </Card>
+
+        {/* ---------- Signature ---------- */}
+        <Card className="mt-8">
+          <CardHeader
+            title="Your signature"
+            description="Added once, then used whenever you sign something here — a lease, a move-out checklist, a policy."
+          />
+          <div className="px-5 py-5">
+            <SignaturePad existing={mySignature} />
+          </div>
         </Card>
 
         {membership && (

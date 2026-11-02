@@ -20,8 +20,21 @@
  * to look at every page without a login and without risk.
  */
 import { spawn } from "node:child_process";
+import { rmSync } from "node:fs";
 
 const PORT = process.env.DEMO_PORT ?? "4310";
+const DIST = ".next-demo";
+
+/**
+ * Start from a clean build directory every time.
+ *
+ * A half-written build directory doesn't announce itself: the server compiles
+ * without complaint and the page then dies in the browser with "Cannot read
+ * properties of undefined (reading 'call')", which looks exactly like a broken
+ * component and sent a whole afternoon chasing one. This directory is
+ * disposable and demo-only, so the cheapest cure is to never reuse it.
+ */
+rmSync(DIST, { recursive: true, force: true });
 
 const env = {
   ...process.env,
@@ -30,7 +43,7 @@ const env = {
   NEXT_PUBLIC_SUPABASE_ANON_KEY: "",
   SUPABASE_SERVICE_ROLE_KEY: "",
   // A separate build directory, so this never disturbs the main dev server.
-  NEXT_DIST_DIR: ".next-demo",
+  NEXT_DIST_DIR: DIST,
 };
 
 console.log(`\n  Demo mode — no database, no login, sample content.`);

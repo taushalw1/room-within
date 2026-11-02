@@ -15,6 +15,7 @@
     "migrate": "node scripts/run-migration.mjs",
     "preview:emails": "npx --yes tsx scripts/preview-emails.mts",
     "check:math": "npx --yes tsx scripts/check-class-math.mts",
+    "check:ink": "npx --yes tsx scripts/check-png-ink.mts",
     "dev:demo": "node scripts/dev-demo.mjs",
     "build:icons": "node scripts/build-app-icons.mjs",
     "preview:digest": "npx --yes tsx scripts/preview-digest.mts"
