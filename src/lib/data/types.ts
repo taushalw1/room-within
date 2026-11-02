@@ -522,3 +522,36 @@ export type ProjectTaskRow = {
   done_at: string | null;
   created_at: string;
 };
+
+/* ---------------------------------------------------------------------------
+   Maintenance
+   --------------------------------------------------------------------------- */
+
+export type Urgency2 = "whenever" | "normal" | "urgent";
+
+export type MaintenanceStatus = "new" | "seen" | "doing" | "fixed" | "declined";
+
+export type MaintenanceRequestRow = {
+  id: string;
+  unit_id: string | null;
+  lease_id: string | null;
+  contact_id: string | null;
+  reported_by: string;
+  title: string;
+  detail: string | null;
+  urgency: Urgency2;
+  photo_path: string | null;
+  status: MaintenanceStatus;
+  fixed_at: string | null;
+  fixed_by: "renter" | "tausha" | null;
+  cost_cents: number | null;
+  receipt_path: string | null;
+  cost_note: string | null;
+  expense_id: string | null;
+  /** Private to Tausha — never shown to the renter. */
+  admin_notes: string | null;
+  /** Shown to the renter. */
+  reply_to_renter: string | null;
+  created_at: string;
+  updated_at: string;
+};

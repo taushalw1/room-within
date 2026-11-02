@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { getOccupancy } from "@/lib/data/maintenance";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { Building2 } from "lucide-react";
 import { AddPanel } from "@/components/admin/AddPanel";
@@ -28,7 +29,7 @@ import {
   getInvoices,
   getUnits,
 } from "@/lib/data/admin";
-import { dateShort, money } from "@/lib/format";
+import { dateShort, money, moneyExact } from "@/lib/format";
 import type { InvoiceState } from "@/lib/data/types";
 
 const FILTERS = [
@@ -53,13 +54,15 @@ export default async function RentalsPage({
 }) {
   const { filter = "all" } = await searchParams;
 
-  const [invoices, units, allLeases, contacts, contactList] = await Promise.all([
-    getInvoices(),
-    getUnits(),
-    getAllLeases(),
-    getContactNameMap(),
-    getContacts(),
-  ]);
+  const [invoices, units, allLeases, contacts, contactList, occupancy] =
+    await Promise.all([
+      getInvoices(),
+      getUnits(),
+      getAllLeases(),
+      getContactNameMap(),
+      getContacts(),
+      getOccupancy(),
+    ]);
 
   const leases = allLeases.filter((l) => l.status === "active");
   const endedLeases = allLeases.filter((l) => l.status === "ended");
@@ -86,6 +89,81 @@ export default async function RentalsPage({
         title="Rentals"
         description="Who&rsquo;s renting what, what&rsquo;s been paid, and what&rsquo;s late."
       />
+
+      {/* ---------- Who's where ---------- */}
+      <Card>
+        <CardHeader
+          title="Who's in which room"
+          tone="olive"
+          description="Every room, who's in it, how to reach them and what they pay. Taken from the active tenancies, so it can't fall out of step with them."
+        />
+        <Table>
+          <thead>
+            <tr>
+              <Th>Room</Th>
+              <Th>Who's in it</Th>
+              <Th>How to reach them</Th>
+              <Th align="right">Rent</Th>
+              <Th align="right">Due</Th>
+            </tr>
+          </thead>
+          <tbody>
+            {occupancy.length === 0 ? (
+              <EmptyRow colSpan={5}>No rooms set up yet.</EmptyRow>
+            ) : (
+              occupancy.map((o) => (
+                <tr key={o.unit.id}>
+                  <Td>
+                    <span className="font-medium">{o.unit.name}</span>
+                    {o.unit.floor && (
+                      <span className="block text-xs text-ink-faint">
+                        {o.unit.floor}
+                      </span>
+                    )}
+                  </Td>
+                  <Td>
+                    {o.occupant ? (
+                      o.occupant.name
+                    ) : (
+                      <Badge tone="warn">empty</Badge>
+                    )}
+                  </Td>
+                  <Td>
+                    {o.occupant?.email && (
+                      <a
+                        href={`mailto:${o.occupant.email}`}
+                        className="text-burgundy hover:underline"
+                      >
+                        {o.occupant.email}
+                      </a>
+                    )}
+                    {o.occupant?.phone && (
+                      <span className="block text-xs text-ink-faint">
+                        {o.occupant.phone}
+                      </span>
+                    )}
+                    {!o.occupant && <span className="text-ink-faint">—</span>}
+                  </Td>
+                  <Td align="right">
+                    {o.lease
+                      ? moneyExact(o.lease.rent_cents)
+                      : o.unit.monthly_rate_cents
+                        ? `${moneyExact(o.unit.monthly_rate_cents)} asking`
+                        : "—"}
+                  </Td>
+                  <Td align="right">
+                    {o.lease ? `${o.lease.due_day}${o.lease.due_day === 1 ? "st" : o.lease.due_day === 2 ? "nd" : o.lease.due_day === 3 ? "rd" : "th"}` : "—"}
+                  </Td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </Table>
+        <p className="border-t border-tan/20 px-5 py-3.5 text-xs text-ink-faint">
+          To change who is in a room, edit their tenancy below. To add a room,
+          use the settings page.
+        </p>
+      </Card>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Stat

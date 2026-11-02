@@ -664,3 +664,38 @@ export async function sendGrantOutreach(opts: {
   if (error) return { ok: false, message: error.message };
   return { ok: true, message: "Sent." };
 }
+
+/** Sent to a renter when something they reported has been put right. */
+export async function sendRepairDone(opts: {
+  to: string;
+  name: string;
+  title: string;
+  note: string | null;
+}): Promise<SendResult> {
+  const first = opts.name.split(" ")[0];
+
+  const body = `
+    ${P(`Hello ${first},`)}
+    ${P(`The thing you reported — <strong>${opts.title}</strong> — has been sorted.`)}
+    ${opts.note ? NOTE(opts.note) : ""}
+    ${P("If it isn't right, or it comes back, just say so on your page and I'll have another look. You won't be a nuisance.")}
+    ${SIGNOFF}`;
+
+  return send({
+    to: opts.to,
+    subject: `Sorted — ${opts.title}`,
+    html: shell("That's been fixed", body, {
+      preview: opts.title,
+      cta: { label: "Your page", url: `${SITE_URL}/portal` },
+    }),
+    text: `Hello ${first},
+
+The thing you reported — ${opts.title} — has been sorted.
+${opts.note ? `\n${opts.note}\n` : ""}
+If it isn't right, or it comes back, just say so on your page.
+
+Warmly,
+Tausha
+${site.name}`,
+  });
+}

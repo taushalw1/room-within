@@ -20,12 +20,22 @@ import {
   getMembershipForContact,
 } from "@/lib/data/classes";
 import { creditBalance } from "@/lib/credits";
+import { getMaintenance, getMyLease } from "@/lib/data/maintenance";
+import { signedUrl } from "@/lib/maintenance-files";
+import { MyRequest, ReportIssueForm } from "@/components/site/MaintenanceForms";
 import { site } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "Your account",
   robots: { index: false, follow: false },
 };
+
+/** 1 -> "1st", 2 -> "2nd". Rent is due on a day, not on a number. */
+function ordinal(n: number): string {
+  const s = ["th", "st", "nd", "rd"];
+  const v = n % 100;
+  return n + (s[(v - 20) % 10] ?? s[v] ?? s[0]);
+}
 
 export default async function PortalPage() {
   const user = await requireUser("/portal");
@@ -58,6 +68,12 @@ export default async function PortalPage() {
 
     bookings = (data as typeof bookings) ?? [];
   }
+
+  const tenancy = await getMyLease(user.contactId);
+  const myRequests = user.contactId ? await getMaintenance() : [];
+  const requestPhotos = await Promise.all(
+    myRequests.map((r) => signedUrl(r.photo_path)),
+  );
 
   const membership = await getMembershipForContact(user.contactId);
   const ledger = membership ? await getCreditLedgerFor(membership.id) : [];
@@ -155,6 +171,78 @@ export default async function PortalPage() {
             </ButtonLink>
           </div>
         </header>
+
+        {tenancy && (
+          <Card className="mt-8">
+            <CardHeader
+              title="Your place"
+              description={
+                tenancy.unit?.description ?? undefined
+              }
+            />
+            <div className="grid gap-x-8 gap-y-4 px-5 py-5 sm:grid-cols-3">
+              <div>
+                <p className="eyebrow !text-[0.6rem] text-bark">Where</p>
+                <p className="mt-1 text-ink">{tenancy.unit?.name ?? "Your unit"}</p>
+              </div>
+              <div>
+                <p className="eyebrow !text-[0.6rem] text-bark">Rent</p>
+                <p className="mt-1 text-ink">
+                  {moneyExact(tenancy.lease.rent_cents)}
+                  <span className="text-ink-soft"> a month</span>
+                </p>
+              </div>
+              <div>
+                <p className="eyebrow !text-[0.6rem] text-bark">Due</p>
+                <p className="mt-1 text-ink">
+                  The {ordinal(tenancy.lease.due_day)} of each month
+                </p>
+              </div>
+              <div>
+                <p className="eyebrow !text-[0.6rem] text-bark">Since</p>
+                <p className="mt-1 text-ink">{dateShort(tenancy.lease.start_date)}</p>
+              </div>
+              {tenancy.lease.end_date && (
+                <div>
+                  <p className="eyebrow !text-[0.6rem] text-bark">Until</p>
+                  <p className="mt-1 text-ink">{dateShort(tenancy.lease.end_date)}</p>
+                </div>
+              )}
+              {tenancy.lease.deposit_cents > 0 && (
+                <div>
+                  <p className="eyebrow !text-[0.6rem] text-bark">Deposit held</p>
+                  <p className="mt-1 text-ink">
+                    {moneyExact(tenancy.lease.deposit_cents)}
+                  </p>
+                </div>
+              )}
+            </div>
+          </Card>
+        )}
+
+        {/* ---------- Repairs ---------- */}
+        <Card className="mt-8">
+          <CardHeader
+            title="Something need fixing?"
+            description="Tell Tausha here rather than hoping to catch her. It goes straight onto her list, and you'll be told when it's done."
+          />
+          <div className="px-5 py-5">
+            <ReportIssueForm />
+          </div>
+
+          {myRequests.length > 0 && (
+            <ul className="divide-y divide-tan/20 border-t border-tan/20">
+              {myRequests.map((r, i) => (
+                <MyRequest
+                  key={r.id}
+                  request={r}
+                  unitName={tenancy?.unit?.name ?? null}
+                  photoUrl={requestPhotos[i]}
+                />
+              ))}
+            </ul>
+          )}
+        </Card>
 
         {membership && (
           <Card className="mt-8">
