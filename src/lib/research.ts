@@ -64,6 +64,32 @@ const GrantSchema = z.object({
   covers_travel: z
     .boolean()
     .describe("True if it can pay for travel, conferences or training."),
+  opens_on: date.describe("When the intake opens, if it is not already open."),
+  match_percent: z
+    .number()
+    .nullable()
+    .describe(
+      "The share of project cost the funder pays, 0-100. Most capital grants are matching — if the page says one-to-one matching, that is 50. Null if the page doesn't say.",
+    ),
+  match_note: z
+    .string()
+    .nullable()
+    .describe("Anything about matching, e.g. 'in-kind labour counts toward the match'."),
+  application_url: z
+    .string()
+    .nullable()
+    .describe(
+      "Direct link to the application form or guidelines document, often a PDF. Null if you cannot find one — do not guess at a URL.",
+    ),
+  contact_name: z.string().nullable().describe("A named person or team to contact."),
+  contact_email: z
+    .string()
+    .nullable()
+    .describe("Contact email published on the page. Null if none is given."),
+  contact_phone: z
+    .string()
+    .nullable()
+    .describe("Contact phone published on the page. Null if none is given."),
   confidence: z
     .enum(["high", "medium", "low"])
     .describe(
@@ -104,6 +130,13 @@ export type FoundOpportunity = {
   amount_max_cents?: number | null;
   deadline?: string | null;
   covers_travel?: boolean;
+  opens_on?: string | null;
+  match_percent?: number | null;
+  match_note?: string | null;
+  application_url?: string | null;
+  contact_name?: string | null;
+  contact_email?: string | null;
+  contact_phone?: string | null;
   starts_on?: string | null;
   ends_on?: string | null;
   location?: string | null;
@@ -138,6 +171,9 @@ function systemPrompt(kind: OpportunityKind, settings: ResearchSettings): string
     "3. Only include things that are currently open or upcoming. Leave out anything whose deadline or date has passed.",
     "4. Prefer a handful of genuinely good matches over a long list. An irrelevant result wastes an afternoon of somebody's time.",
     "5. Mark confidence honestly. Use low if the page was vague, undated, or looked like it hadn't been updated in a while.",
+    kind === "grant"
+      ? "5b. Look for the practical details as well: who to contact, their email and phone, the share of project cost the funder pays, and a direct link to the application form. These decide whether she can act on a grant at all. Leave any of them null rather than guessing — a wrong phone number wastes a morning."
+      : "",
     kind === "grant"
       ? "6. This is a sole proprietorship, not a registered charity or nonprofit. Many funders require charitable status. You may still include such a grant if it is otherwise an excellent fit, but say so plainly in the eligibility field."
       : "6. Include online events — travel from southern Alberta is expensive and slow.",
@@ -276,6 +312,17 @@ export async function research(
           amount_max_cents: toCents(g.amount_max),
           deadline: g.deadline,
           covers_travel: g.covers_travel,
+          opens_on: g.opens_on,
+          match_percent: g.match_percent,
+          match_note: g.match_note?.trim() || null,
+          // A guessed link that 404s is worse than no link at all.
+          application_url:
+            g.application_url && usableUrl(g.application_url)
+              ? g.application_url
+              : null,
+          contact_name: g.contact_name?.trim() || null,
+          contact_email: g.contact_email?.trim() || null,
+          contact_phone: g.contact_phone?.trim() || null,
         });
       } else {
         const c = r as z.infer<typeof ConferenceSchema>;

@@ -1,5 +1,5 @@
 import { OpportunityIndex } from "@/components/admin/OpportunityPages";
-import { searchGrantsNow } from "./actions";
+import { searchGrantsNow, sendDigestNow } from "./actions";
 import {
   getOpportunities,
   getResearchRuns,
@@ -22,6 +22,7 @@ export default async function GrantsPage() {
       progress={progress}
       runs={runs}
       searchAction={searchGrantsNow}
+      digestAction={sendDigestNow}
       apiConfigured={Boolean(process.env.ANTHROPIC_API_KEY)}
     />
   );

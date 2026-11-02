@@ -537,3 +537,130 @@ Tausha
 ${site.name}`,
   });
 }
+
+/**
+ * The Monday summary of grants that turned up.
+ *
+ * Opens with what is closing soonest rather than what is newest — a grant
+ * found three weeks ago that shuts on Friday matters more than one found this
+ * morning that runs all year.
+ */
+export async function sendGrantDigest(opts: {
+  to: string;
+  grants: {
+    title: string;
+    organisation: string | null;
+    amount: string | null;
+    deadline: string | null;
+    deadlineNote: string;
+    urgent: boolean;
+    url: string | null;
+    why: string | null;
+  }[];
+  closingSoon: { title: string; deadlineNote: string }[];
+}): Promise<SendResult> {
+  if (opts.grants.length === 0 && opts.closingSoon.length === 0) {
+    return { ok: true, message: "Nothing to send — no new grants this week." };
+  }
+
+  const row = (g: (typeof opts.grants)[number]) => `
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 14px;">
+      <tr><td style="padding:14px 18px;background:${g.urgent ? "#f0e2e2" : "#e3e7d5"};border-radius:5px;">
+        <strong style="color:#414d30;font-size:16px;">${g.title}</strong><br>
+        ${g.organisation ? `<span style="color:#6b6659;font-size:14px;">${g.organisation}</span><br>` : ""}
+        <span style="color:${g.urgent ? "#7c2e3e" : "#6b6659"};font-size:14px;">
+          ${g.amount ? `${g.amount} · ` : ""}${g.deadlineNote}
+        </span>
+        ${g.why ? `<br><span style="color:#3a372f;font-size:14px;">${g.why}</span>` : ""}
+      </td></tr>
+    </table>`;
+
+  const closing =
+    opts.closingSoon.length > 0
+      ? `${P("<strong>Closing soon, already on your list:</strong>")}
+         <ul style="margin:0 0 14px;padding-left:20px;color:#3a372f;">
+           ${opts.closingSoon.map((c) => `<li style="margin-bottom:6px;">${c.title} — <span style="color:#7c2e3e;">${c.deadlineNote}</span></li>`).join("")}
+         </ul>`
+      : "";
+
+  const body = `
+    ${P("Hello Tausha,")}
+    ${
+      opts.grants.length > 0
+        ? P(
+            `The weekly search turned up <strong>${opts.grants.length} new ${opts.grants.length === 1 ? "grant" : "grants"}</strong> worth a look.`,
+          )
+        : P("Nothing new turned up this week, but a couple of things are closing.")
+    }
+    ${opts.grants.map(row).join("")}
+    ${closing}
+    ${P("Every one of these was read off a web page automatically, so the dates and amounts have not been checked by anyone. Open the real page before you spend an afternoon on any of it — the app will remind you to.")}
+    ${SIGNOFF}`;
+
+  const text = `Hello Tausha,
+
+${opts.grants.length} new grant${opts.grants.length === 1 ? "" : "s"} this week:
+
+${opts.grants.map((g) => `- ${g.title}${g.organisation ? ` (${g.organisation})` : ""}\n  ${g.amount ?? ""} ${g.deadlineNote}\n  ${g.url ?? ""}`).join("\n\n")}
+
+${opts.closingSoon.length ? `Closing soon:\n${opts.closingSoon.map((c) => `- ${c.title} — ${c.deadlineNote}`).join("\n")}` : ""}
+
+These were gathered automatically. Check each against the funder's own page before relying on it.
+
+Warmly,
+Tausha`;
+
+  return send({
+    to: opts.to,
+    subject:
+      opts.grants.length > 0
+        ? `${opts.grants.length} new grant${opts.grants.length === 1 ? "" : "s"} this week`
+        : "Grants closing soon",
+    html: shell("Grants this week", body, {
+      preview:
+        opts.grants.length > 0
+          ? `${opts.grants.length} new, ${opts.closingSoon.length} closing soon.`
+          : `${opts.closingSoon.length} closing soon.`,
+      cta: { label: "Open the grants page", url: `${SITE_URL}/admin/grants` },
+    }),
+    text,
+  });
+}
+
+/**
+ * Her own email to a funder, sent from the app.
+ *
+ * Sent with her address as the reply-to, so a funder hitting reply reaches her
+ * and not a no-reply mailbox.
+ */
+export async function sendGrantOutreach(opts: {
+  to: string;
+  subject: string;
+  body: string;
+  replyTo: string;
+}): Promise<SendResult> {
+  const html = `<div style="font-family:Georgia,'Times New Roman',serif;font-size:15px;line-height:1.65;color:#3a372f;white-space:pre-wrap;">${opts.body
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")}</div>`;
+
+  const resend = client();
+  if (!resend) {
+    return {
+      ok: false,
+      message: "Email isn't set up yet — nothing was sent.",
+    };
+  }
+
+  const { error } = await resend.emails.send({
+    from: FROM,
+    to: opts.to,
+    replyTo: opts.replyTo,
+    subject: opts.subject,
+    html,
+    text: opts.body,
+  });
+
+  if (error) return { ok: false, message: error.message };
+  return { ok: true, message: "Sent." };
+}

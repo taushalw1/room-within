@@ -415,6 +415,26 @@ export type OpportunityRow = {
   archived_at: string | null;
   notes: string | null;
 
+  /** Who to talk to at the funder. */
+  contact_name: string | null;
+  contact_email: string | null;
+  contact_phone: string | null;
+
+  /** Share of the project they pay. 50 means we find the other half. */
+  match_percent: number | null;
+  match_note: string | null;
+
+  /** The funder's own application form, usually a PDF. */
+  application_url: string | null;
+  opens_on: string | null;
+
+  outreach_to: string | null;
+  outreach_subject: string | null;
+  outreach_draft: string | null;
+  outreach_sent_at: string | null;
+
+  digest_sent_at: string | null;
+
   /** Her own estimate of the chance of getting it, 0-100. */
   probability: number | null;
   owner: string | null;

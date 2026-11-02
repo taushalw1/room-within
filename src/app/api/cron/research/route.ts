@@ -1,5 +1,7 @@
 import { getServiceSupabase } from "@/lib/supabase/server";
 import { DEFAULT_RESEARCH_SETTINGS, research } from "@/lib/research";
+import { sendWeeklyDigest } from "@/lib/grant-digest";
+import { site } from "@/lib/site";
 import type { OpportunityKind, ResearchSettings } from "@/lib/data/types";
 
 /**
@@ -48,6 +50,13 @@ export async function GET(request: Request) {
   for (const kind of ["grant", "conference"] as OpportunityKind[]) {
     summary[kind] = await runOne(supabase, kind, settings);
   }
+
+  // The email goes out after the search, so it can include whatever turned up
+  // this morning. It is stamped per grant, so a rerun never repeats one.
+  summary.digest = await sendWeeklyDigest(
+    supabase as never,
+    process.env.ADMIN_EMAIL ?? site.email,
+  );
 
   console.log("Weekly research:", JSON.stringify(summary));
   return Response.json({ ok: true, ...summary });
@@ -109,6 +118,13 @@ async function runOne(
       amount_max_cents: f.amount_max_cents ?? null,
       deadline: f.deadline ?? null,
       covers_travel: f.covers_travel ?? false,
+      opens_on: f.opens_on ?? null,
+      match_percent: f.match_percent ?? null,
+      match_note: f.match_note ?? null,
+      application_url: f.application_url ?? null,
+      contact_name: f.contact_name ?? null,
+      contact_email: f.contact_email ?? null,
+      contact_phone: f.contact_phone ?? null,
       starts_on: f.starts_on ?? null,
       ends_on: f.ends_on ?? null,
       location: f.location ?? null,

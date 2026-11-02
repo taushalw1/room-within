@@ -6,6 +6,7 @@ import {
   FileDown,
   Inbox,
   Plane,
+  Mail,
   Search,
 } from "lucide-react";
 import { AddPanel } from "@/components/admin/AddPanel";
@@ -23,6 +24,12 @@ import {
 } from "@/components/admin/Opportunities";
 import { Badge, Card, CardHeader, EmptyRow, Table, Th } from "@/components/ui/Table";
 import { ButtonLink } from "@/components/ui/Button";
+import {
+  GrantAssistantPrompt,
+  GrantContact,
+  GrantOutreach,
+} from "@/components/admin/GrantTools";
+import { assistantPrompt, outreachDraft } from "@/lib/grant-prompts";
 import {
   STATUS_LABELS,
   STATUS_ORDER,
@@ -77,6 +84,7 @@ export function OpportunityIndex({
   progress,
   runs,
   searchAction,
+  digestAction,
   apiConfigured,
 }: {
   kind: OpportunityKind;
@@ -84,6 +92,7 @@ export function OpportunityIndex({
   progress: Map<string, { done: number; total: number }>;
   runs: ResearchRunRow[];
   searchAction: () => Promise<Result>;
+  digestAction?: () => Promise<Result>;
   apiConfigured: boolean;
 }) {
   const words = WORDS[kind];
@@ -191,6 +200,21 @@ export function OpportunityIndex({
                   ? `didn't work: ${lastRun.message ?? "no reason given"}`
                   : lastRun.status}
             </p>
+          )}
+
+          {kind === "grant" && digestAction && (
+            <div className="border-t border-tan/20 pt-4">
+              <RunButton
+                action={digestAction}
+                label="Send me this week's summary"
+                icon={<Mail className="h-3.5 w-3.5" aria-hidden />}
+                variant="ghost"
+              />
+              <p className="mt-2 text-xs text-ink-faint">
+                This arrives on its own every Monday morning. Anything already
+                sent to you won&rsquo;t be repeated.
+              </p>
+            </div>
           )}
 
           <p className="text-xs leading-relaxed text-ink-faint">
@@ -368,6 +392,16 @@ export function OpportunityDetail({
                 value={o.eligibility ?? "Not stated on the page"}
                 wide
               />
+              {o.match_percent != null && (
+                <Fact
+                  label="They pay"
+                  value={`${o.match_percent}% of the project`}
+                  note={
+                    o.match_note ??
+                    `You find the other ${100 - o.match_percent}%.`
+                  }
+                />
+              )}
               {o.covers_travel && (
                 <Fact
                   label="Travel"
@@ -438,6 +472,46 @@ export function OpportunityDetail({
         />
         <Checklist steps={steps} kind={o.kind} />
       </Card>
+
+      {/* ---------- Who to talk to ---------- */}
+      {isGrant && (
+        <Card>
+          <CardHeader
+            title="Who to talk to, and what they pay"
+            description="The practical bits. A phone number here is the difference between meaning to ask and actually asking."
+          />
+          <div className="px-5 py-5">
+            <GrantContact grant={o} />
+          </div>
+        </Card>
+      )}
+
+      {/* ---------- The email ---------- */}
+      {isGrant && (
+        <Card>
+          <CardHeader
+            title="Ask them a question"
+            tone="olive"
+            description="A short email asking for twenty minutes on the phone. Written for you — change anything you like, then send it from here."
+          />
+          <div className="px-5 py-5">
+            <GrantOutreach grant={o} draft={outreachDraft(o)} />
+          </div>
+        </Card>
+      )}
+
+      {/* ---------- The Claude briefing ---------- */}
+      {isGrant && (
+        <Card>
+          <CardHeader
+            title="Get Claude to help you apply"
+            description="Everything about the building and this grant, written so Claude can pick it up and start helping straight away."
+          />
+          <div className="px-5 py-5">
+            <GrantAssistantPrompt prompt={assistantPrompt(o)} />
+          </div>
+        </Card>
+      )}
 
       {/* ---------- The handoff ---------- */}
       <Card>

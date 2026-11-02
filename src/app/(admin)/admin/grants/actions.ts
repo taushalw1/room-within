@@ -338,6 +338,13 @@ export async function saveFindings(
       amount_max_cents: f.amount_max_cents ?? null,
       deadline: f.deadline ?? null,
       covers_travel: f.covers_travel ?? false,
+      opens_on: f.opens_on ?? null,
+      match_percent: f.match_percent ?? null,
+      match_note: f.match_note ?? null,
+      application_url: f.application_url ?? null,
+      contact_name: f.contact_name ?? null,
+      contact_email: f.contact_email ?? null,
+      contact_phone: f.contact_phone ?? null,
       starts_on: f.starts_on ?? null,
       ends_on: f.ends_on ?? null,
       location: f.location ?? null,
@@ -418,3 +425,193 @@ export async function searchConferencesNow(): Promise<ActionResult> {
 
 /** Used by the detail pages to show the record after an edit. */
 export type { OpportunityRow };
+
+/* --------------------- The practical details, by hand ---------------------- */
+
+const detailsSchema = z.object({
+  id: z.string().min(1),
+  contactName: z.string().trim().max(200).optional(),
+  contactEmail: z.string().trim().max(200).optional(),
+  contactPhone: z.string().trim().max(60).optional(),
+  matchPercent: z.union([z.coerce.number().int().min(0).max(100), z.literal("")]).optional(),
+  matchNote: z.string().trim().max(500).optional(),
+  applicationUrl: z.string().trim().max(500).optional(),
+});
+
+/** Fill in what the search couldn't find, or correct what it got wrong. */
+export async function saveGrantDetails(
+  _prev: ActionResult | null,
+  formData: FormData,
+): Promise<ActionResult> {
+  await requireAdmin();
+  if (isDemoMode) return DEMO;
+
+  const parsed = detailsSchema.safeParse({
+    id: formData.get("id"),
+    contactName: formData.get("contactName"),
+    contactEmail: formData.get("contactEmail"),
+    contactPhone: formData.get("contactPhone"),
+    matchPercent: formData.get("matchPercent") || "",
+    matchNote: formData.get("matchNote"),
+    applicationUrl: formData.get("applicationUrl"),
+  });
+
+  if (!parsed.success) {
+    return { ok: false, message: parsed.error.issues[0].message };
+  }
+  const v = parsed.data;
+
+  if (v.contactEmail && !/^[^@\s]+@[^@\s]+[.][^@\s]+$/.test(v.contactEmail)) {
+    return { ok: false, message: "That email address doesn't look right." };
+  }
+
+  const supabase = await getServerSupabase();
+  if (!supabase) return NO_DB;
+
+  const { error } = await supabase
+    .from("opportunities")
+    .update({
+      contact_name: v.contactName || null,
+      contact_email: v.contactEmail || null,
+      contact_phone: v.contactPhone || null,
+      match_percent: v.matchPercent === "" ? null : v.matchPercent,
+      match_note: v.matchNote || null,
+      application_url: v.applicationUrl || null,
+    })
+    .eq("id", v.id);
+
+  if (error) return { ok: false, message: error.message };
+
+  refresh();
+  revalidatePath(`/admin/grants/${v.id}`);
+  return { ok: true, message: "Saved." };
+}
+
+/* ------------------------- Emailing the funder ----------------------------- */
+
+const outreachSchema = z.object({
+  id: z.string().min(1),
+  to: z.string().trim().email("That email address doesn't look right."),
+  subject: z.string().trim().min(3, "The subject line is empty."),
+  body: z.string().trim().min(40, "The message looks too short to send."),
+});
+
+/**
+ * Send her email to the funder.
+ *
+ * It goes out from the building's address with her own as the reply-to, so a
+ * funder who hits reply reaches her. The sent copy is kept on the grant — a
+ * month later, "what did I actually ask them?" is the first question.
+ */
+export async function sendOutreach(
+  _prev: ActionResult | null,
+  formData: FormData,
+): Promise<ActionResult> {
+  const user = await requireAdmin();
+  if (isDemoMode) return DEMO;
+
+  const parsed = outreachSchema.safeParse({
+    id: formData.get("id"),
+    to: formData.get("to"),
+    subject: formData.get("subject"),
+    body: formData.get("body"),
+  });
+
+  if (!parsed.success) {
+    return { ok: false, message: parsed.error.issues[0].message };
+  }
+  const v = parsed.data;
+
+  const supabase = await getServerSupabase();
+  if (!supabase) return NO_DB;
+
+  const { sendGrantOutreach } = await import("@/lib/email/send");
+
+  const sent = await sendGrantOutreach({
+    to: v.to,
+    subject: v.subject,
+    body: v.body,
+    replyTo: user.email ?? "",
+  });
+
+  if (!sent.ok) return { ok: false, message: sent.message };
+
+  await supabase
+    .from("opportunities")
+    .update({
+      outreach_to: v.to,
+      outreach_subject: v.subject,
+      outreach_draft: v.body,
+      outreach_sent_at: new Date().toISOString(),
+    })
+    .eq("id", v.id);
+
+  refresh();
+  revalidatePath(`/admin/grants/${v.id}`);
+
+  return {
+    ok: true,
+    message: `Sent to ${v.to}. Replies come straight to you.`,
+  };
+}
+
+/** Keep an edited draft without sending it. */
+export async function saveOutreachDraft(
+  _prev: ActionResult | null,
+  formData: FormData,
+): Promise<ActionResult> {
+  await requireAdmin();
+  if (isDemoMode) return DEMO;
+
+  const supabase = await getServerSupabase();
+  if (!supabase) return NO_DB;
+
+  const id = String(formData.get("id") ?? "");
+  const { error } = await supabase
+    .from("opportunities")
+    .update({
+      outreach_to: String(formData.get("to") ?? "") || null,
+      outreach_subject: String(formData.get("subject") ?? "") || null,
+      outreach_draft: String(formData.get("body") ?? "") || null,
+    })
+    .eq("id", id);
+
+  if (error) return { ok: false, message: error.message };
+
+  revalidatePath(`/admin/grants/${id}`);
+  return { ok: true, message: "Draft saved. Nothing has been sent." };
+}
+
+/**
+ * Send this week's summary now.
+ *
+ * It goes out on its own each Monday; this is for seeing what it looks like,
+ * and for the week she wants it early. Safe to press twice — a grant already
+ * included is stamped and won't appear again.
+ */
+export async function sendDigestNow(): Promise<ActionResult> {
+  await requireAdmin();
+  if (isDemoMode) return DEMO;
+
+  const supabase = await getServerSupabase();
+  if (!supabase) return NO_DB;
+
+  const { sendWeeklyDigest } = await import("@/lib/grant-digest");
+  const { site } = await import("@/lib/site");
+
+  const outcome = await sendWeeklyDigest(
+    supabase as never,
+    process.env.ADMIN_EMAIL ?? site.email,
+  );
+
+  refresh();
+
+  if (!outcome.sent) {
+    return { ok: false, message: outcome.reason ?? "Nothing was sent." };
+  }
+
+  return {
+    ok: true,
+    message: `Sent — ${outcome.newCount} new, ${outcome.closingCount} closing soon.`,
+  };
+}

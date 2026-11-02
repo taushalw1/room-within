@@ -16,7 +16,8 @@
     "preview:emails": "npx --yes tsx scripts/preview-emails.mts",
     "check:math": "npx --yes tsx scripts/check-class-math.mts",
     "dev:demo": "node scripts/dev-demo.mjs",
-    "build:icons": "node scripts/build-app-icons.mjs"
+    "build:icons": "node scripts/build-app-icons.mjs",
+    "preview:digest": "npx --yes tsx scripts/preview-digest.mts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.125.0",
