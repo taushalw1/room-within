@@ -673,3 +673,19 @@ export type WarrantyRow = {
   created_at: string;
   updated_at: string;
 };
+
+export type WaitingListRow = {
+  id: string;
+  full_name: string;
+  email: string | null;
+  phone: string | null;
+  looking_for: string | null;
+  unit_kinds: string[];
+  budget_cents: number | null;
+  needed_from: string | null;
+  notes: string | null;
+  status: "waiting" | "offered" | "housed" | "gone";
+  last_contacted_on: string | null;
+  created_at: string;
+  updated_at: string;
+};

@@ -23,6 +23,8 @@ import {
 import { cn } from "@/lib/cn";
 import { TenancyRow } from "@/components/admin/TenancyRow";
 import { StartMoveOutForm } from "@/components/admin/MoveOutAdmin";
+import { WaitingList } from "@/components/admin/WaitingList";
+import { getWaitingList } from "@/lib/data/rooms";
 import { getMoveOuts } from "@/lib/data/move-out";
 import {
   getAllLeases,
@@ -56,7 +58,16 @@ export default async function RentalsPage({
 }) {
   const { filter = "all" } = await searchParams;
 
-  const [invoices, units, allLeases, contacts, contactList, occupancy, moveOuts] =
+  const [
+    invoices,
+    units,
+    allLeases,
+    contacts,
+    contactList,
+    occupancy,
+    moveOuts,
+    waiting,
+  ] =
     await Promise.all([
       getInvoices(),
       getUnits(),
@@ -65,6 +76,7 @@ export default async function RentalsPage({
       getContacts(),
       getOccupancy(),
       getMoveOuts(),
+      getWaitingList(),
     ]);
 
   const leaving = moveOuts.filter((m) => m.status !== "settled");
@@ -255,6 +267,20 @@ export default async function RentalsPage({
             )}
           </tbody>
         </Table>
+      </Card>
+
+      {/* ---------- Waiting ---------- */}
+      <Card>
+        <CardHeader
+          title="Waiting for a room"
+          description="Anyone who has asked, whether or not anything was free at the time."
+        />
+        <WaitingList
+          entries={waiting}
+          emptyUnits={units.filter(
+            (u) => u.is_active && !occupancy.find((o) => o.unit.id === u.id)?.occupant,
+          )}
+        />
       </Card>
 
       {/* ---------- Ending ---------- */}

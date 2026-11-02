@@ -4,6 +4,8 @@ import { AddPanel } from "@/components/admin/AddPanel";
 import { ExpenseForm } from "@/components/admin/ExpenseForm";
 import { ExpenseRow } from "@/components/admin/ExpenseRow";
 import { MonthlyChart } from "@/components/admin/MonthlyChart";
+import { RoomEconomics } from "@/components/admin/RoomEconomics";
+import { getRoomYears } from "@/lib/data/rooms";
 import { Stat } from "@/components/admin/Stat";
 import {
   Badge,
@@ -45,6 +47,12 @@ const STREAM_LABELS: Record<string, string> = {
 };
 
 export default async function FinancePage() {
+  const thisYear = new Date().getFullYear();
+  const yearFrom = `${thisYear}-01-01`;
+  const yearTo = `${thisYear}-12-31`;
+
+  const rooms = await getRoomYears(yearFrom, yearTo);
+
   const [
     invoices,
     expenses,
@@ -228,6 +236,15 @@ export default async function FinancePage() {
           icon={HandHeart}
         />
       </div>
+
+      <Card>
+        <CardHeader
+          title="Which rooms pay"
+          tone="olive"
+          description={`What each room brought in and cost between ${yearFrom} and ${yearTo}, and what the empty days cost.`}
+        />
+        <RoomEconomics rooms={rooms} />
+      </Card>
 
       <Card>
         <CardHeader
