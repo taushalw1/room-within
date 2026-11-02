@@ -110,11 +110,12 @@ export default async function RentalsPage({
               <Th>How to reach them</Th>
               <Th align="right">Rent</Th>
               <Th align="right">Due</Th>
+              <Th align="right" />
             </tr>
           </thead>
           <tbody>
             {occupancy.length === 0 ? (
-              <EmptyRow colSpan={5}>No rooms set up yet.</EmptyRow>
+              <EmptyRow colSpan={6}>No rooms set up yet.</EmptyRow>
             ) : (
               occupancy.map((o) => (
                 <tr key={o.unit.id}>
@@ -158,6 +159,20 @@ export default async function RentalsPage({
                   </Td>
                   <Td align="right">
                     {o.lease ? `${o.lease.due_day}${o.lease.due_day === 1 ? "st" : o.lease.due_day === 2 ? "nd" : o.lease.due_day === 3 ? "rd" : "th"}` : "—"}
+                  </Td>
+                  <Td align="right">
+                    {o.occupant ? (
+                      <a
+                        href={`/api/statement?contact=${o.occupant.id}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-xs text-olive-deep underline underline-offset-2"
+                      >
+                        Statement
+                      </a>
+                    ) : (
+                      <span className="text-ink-faint">—</span>
+                    )}
                   </Td>
                 </tr>
               ))

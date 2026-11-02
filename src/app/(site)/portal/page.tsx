@@ -105,6 +105,8 @@ export default async function PortalPage() {
     }
   }
 
+  const thisYear = new Date().getFullYear();
+
   // Their profile picture.
   let myAvatar: string | null = null;
   {
@@ -298,6 +300,26 @@ export default async function PortalPage() {
             </ul>
           )}
         </Card>
+
+        {user.contactId && (
+          <Card className="mt-8">
+            <CardHeader
+              title="Your statement"
+              description="Everything charged and everything paid, in order, with a running balance."
+            />
+            <div className="flex flex-wrap items-center gap-4 px-5 py-5">
+              <ButtonLink href={`/api/statement?from=${thisYear}-01-01&to=${thisYear}-12-31`}>
+                This year
+              </ButtonLink>
+              <ButtonLink
+                variant="ghost"
+                href={`/api/statement?from=${thisYear - 1}-01-01&to=${thisYear - 1}-12-31`}
+              >
+                Last year
+              </ButtonLink>
+            </div>
+          </Card>
+        )}
 
         {/* ---------- Picture ---------- */}
         <Card className="mt-8">

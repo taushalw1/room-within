@@ -19,7 +19,8 @@
     "dev:demo": "node scripts/dev-demo.mjs",
     "build:icons": "node scripts/build-app-icons.mjs",
     "preview:digest": "npx --yes tsx scripts/preview-digest.mts",
-    "preview:morning": "npx --yes tsx scripts/preview-morning.mts"
+    "preview:morning": "npx --yes tsx scripts/preview-morning.mts",
+    "preview:statement": "npx --yes tsx scripts/preview-statement.mts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.125.0",
