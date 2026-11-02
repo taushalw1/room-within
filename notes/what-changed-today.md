@@ -2,7 +2,7 @@
 
 *2 November 2026*
 
-Five things went in today. None of them need anything from you to start
+Nine things went in today. None of them need anything from you to start
 working, except the two with switches, which are described at the end.
 
 ---
@@ -139,6 +139,80 @@ percentage, and a ceiling. Then:
   is and what it was for
 
 Settings → "When an invoice goes unpaid".
+
+---
+
+## 6. A page for looking after the building
+
+A new page, **The building**, with three things that have been living in your
+head and nowhere else.
+
+**Jobs that come round.** Gutters, the furnace, smoke alarms — what the job is,
+how often, and when it's next due. Tick one off and the next one is counted
+from the day you actually did it, not the day it was due. (So a furnace
+serviced two months late is next due twelve months after *that*, rather than
+ten — otherwise being late once makes every year afterwards slightly wrong.)
+
+**Who you call.** Your tradespeople by trade, with the numbers tappable so you
+can ring them from your phone, and a line for how it went last time in your own
+words. More use in a year than a star rating. Taking somebody off the list
+hides them rather than deleting them, so the repair history still says who did
+the work.
+
+**What's still under warranty**, with a photo of the paperwork attached. This
+is the one that saves real money. A furnace with eight years of cover left is
+worth nothing on the morning it stops if nobody can find the card.
+
+There's also **what each room has cost** — every repair ever reported, grouped
+by room. Anything reported more than once is called out, because the third time
+the same radiator comes up the question stops being who can fix it.
+
+Jobs that are late and cover about to run out both turn up in your morning
+note.
+
+---
+
+## 7. Statements of account
+
+Everything charged and everything paid, in date order, with a running balance.
+A PDF you can attach to an email.
+
+This is for the conversation that starts "I thought I'd paid that". There's a
+**Statement** link beside each tenant on the Rentals page, and tenants can
+get their own — this year or last year — from their account page.
+
+Every statement ends by saying that if paying is difficult they should say so.
+Not only when somebody asks: a person who's struggling usually says nothing
+unless they're invited to.
+
+---
+
+## 8. Which rooms actually pay
+
+On the Finance page: each room's year. What came in, what was spent on it,
+what was left, and **how many days it stood empty and what those days cost**.
+
+That last column is the one worth looking at. A room that earns well but sits
+empty four months a year can be worth less than a cheaper one that never does,
+and nothing in the app showed that before.
+
+"Spent on it" is only money genuinely attached to that room — repairs, and any
+expense you tag to it. Insurance, heating and the accountant belong to the
+whole building and aren't divided up, because splitting them by floor size
+gives a number that looks precise and tells you nothing.
+
+---
+
+## 9. A waiting list
+
+On the Rentals page. Anyone who asks about a room goes on it, whether or not
+anything is free at the time, with what would suit them and what they can pay.
+
+When a room does come free, the people it would suit are marked. It isn't
+choosing for you — it's making sure the right two names are in front of you
+that morning instead of in a notebook. An empty room costs its rent every
+month it's empty, and knowing who to ring is the only thing that shortens
+that.
 
 ---
 
