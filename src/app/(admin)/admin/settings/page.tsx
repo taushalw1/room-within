@@ -1,4 +1,6 @@
 import { AddPanel } from "@/components/admin/AddPanel";
+import { DigestForm, LateFeeForm } from "@/components/admin/MoneySettingsForms";
+import { getDigestSettings, getLateFeeSettings } from "@/lib/data/settings";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { TestEmailButtons } from "@/components/admin/TestEmailButtons";
 import { RatesForm } from "@/components/admin/RatesForm";
@@ -21,16 +23,27 @@ import { money } from "@/lib/format";
 import { site } from "@/lib/site";
 
 export default async function SettingsPage() {
-  const [rooms, units, rates, user, classSettings, creditSettings, researchSettings] =
-    await Promise.all([
-      getRooms(),
-      getUnits(),
-      getRates(),
-      getCurrentUser(),
-      getClassSettings(),
-      getCreditSettings(),
-      getResearchSettings(),
-    ]);
+  const [
+    rooms,
+    units,
+    rates,
+    user,
+    classSettings,
+    creditSettings,
+    researchSettings,
+    lateFees,
+    digest,
+  ] = await Promise.all([
+    getRooms(),
+    getUnits(),
+    getRates(),
+    getCurrentUser(),
+    getClassSettings(),
+    getCreditSettings(),
+    getResearchSettings(),
+    getLateFeeSettings(),
+    getDigestSettings(),
+  ]);
 
   return (
     <div className="space-y-8">
@@ -127,6 +140,26 @@ export default async function SettingsPage() {
         />
         <div className="px-5 py-5">
           <CreditSettingsForm settings={creditSettings} />
+        </div>
+      </Card>
+
+      <Card>
+        <CardHeader
+          title="When an invoice goes unpaid"
+          description="Whether anything is added to an invoice that stays unpaid, and how much."
+        />
+        <div className="px-5 py-5">
+          <LateFeeForm settings={lateFees} />
+        </div>
+      </Card>
+
+      <Card>
+        <CardHeader
+          title="Your morning note"
+          description="A short email first thing, with whatever actually needs you that day."
+        />
+        <div className="px-5 py-5">
+          <DigestForm settings={digest} />
         </div>
       </Card>
 

@@ -42,11 +42,14 @@ export function CheckField({
   name,
   defaultChecked,
   hint,
+  onChange,
 }: {
   label: string;
   name: string;
   defaultChecked?: boolean;
   hint?: string;
+  /** For a box that reveals more of the form when it is ticked. */
+  onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }) {
   return (
     <label className="flex items-start gap-3 text-sm text-ink-soft">
@@ -54,6 +57,7 @@ export function CheckField({
         type="checkbox"
         name={name}
         defaultChecked={defaultChecked}
+        onChange={onChange}
         className="mt-1 h-4 w-4 shrink-0 accent-[var(--color-olive)]"
       />
       <span>

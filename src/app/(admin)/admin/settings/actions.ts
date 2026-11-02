@@ -589,3 +589,122 @@ export async function updateResearchSettings(
       : "Saved, and the weekly search is switched off.",
   };
 }
+
+const lateFeeSchema = z.object({
+  enabled: z.boolean(),
+  graceDays: z.coerce.number().int().min(0).max(60),
+  kind: z.enum(["fixed", "percent"]),
+  amount: z.coerce.number().min(0).max(1000),
+  percent: z.coerce.number().min(0).max(25),
+  max: z.coerce.number().min(0).max(5000),
+  appliesToRent: z.boolean(),
+  appliesToBookings: z.boolean(),
+  appliesToOther: z.boolean(),
+});
+
+/**
+ * Turn late fees on, or change what they are.
+ *
+ * The one setting in here with a person on the other end of it, so the
+ * message it gives back says plainly what has just been switched on rather
+ * than "Saved."
+ */
+export async function updateLateFeeSettings(
+  _prev: ActionResult | null,
+  formData: FormData,
+): Promise<ActionResult> {
+  await requireAdmin();
+  if (isDemoMode) return DEMO_RESULT;
+
+  const parsed = lateFeeSchema.safeParse({
+    enabled: formData.get("enabled") === "on",
+    graceDays: formData.get("graceDays"),
+    kind: formData.get("kind"),
+    amount: formData.get("amount") || 0,
+    percent: formData.get("percent") || 0,
+    max: formData.get("max") || 0,
+    appliesToRent: formData.get("appliesToRent") === "on",
+    appliesToBookings: formData.get("appliesToBookings") === "on",
+    appliesToOther: formData.get("appliesToOther") === "on",
+  });
+
+  if (!parsed.success) {
+    return { ok: false, message: parsed.error.issues[0].message };
+  }
+
+  const v = parsed.data;
+  const appliesTo = [
+    ...(v.appliesToRent ? ["rent"] : []),
+    ...(v.appliesToBookings ? ["booking"] : []),
+    ...(v.appliesToOther ? ["other"] : []),
+  ];
+
+  if (v.enabled && appliesTo.length === 0) {
+    return {
+      ok: false,
+      message: "Pick at least one kind of invoice a fee can apply to.",
+    };
+  }
+
+  const supabase = await getServerSupabase();
+  if (!supabase) return { ok: false, message: "No database connection." };
+
+  const { error } = await supabase.from("settings").upsert(
+    {
+      key: "late_fees",
+      value: {
+        enabled: v.enabled,
+        grace_days: v.graceDays,
+        kind: v.kind,
+        amount_cents: Math.round(v.amount * 100),
+        percent: v.percent,
+        max_cents: Math.round(v.max * 100),
+        applies_to: appliesTo,
+      },
+      updated_at: new Date().toISOString(),
+    },
+    { onConflict: "key" },
+  );
+
+  if (error) return { ok: false, message: `Couldn't save that: ${error.message}` };
+
+  revalidatePath("/admin/settings");
+  revalidatePath("/admin/rentals");
+
+  return {
+    ok: true,
+    message: v.enabled
+      ? `Saved. From tomorrow morning, an invoice still unpaid ${v.graceDays} days after it was due will get one fee added — once, not every month.`
+      : "Saved, and no late fees will be charged.",
+  };
+}
+
+/** Whether the morning note gets sent at all. */
+export async function updateDigestSettings(
+  _prev: ActionResult | null,
+  formData: FormData,
+): Promise<ActionResult> {
+  await requireAdmin();
+  if (isDemoMode) return DEMO_RESULT;
+
+  const enabled = formData.get("enabled") === "on";
+
+  const supabase = await getServerSupabase();
+  if (!supabase) return { ok: false, message: "No database connection." };
+
+  const { error } = await supabase.from("settings").upsert(
+    { key: "digest", value: { enabled }, updated_at: new Date().toISOString() },
+    { onConflict: "key" },
+  );
+
+  if (error) return { ok: false, message: `Couldn't save that: ${error.message}` };
+
+  revalidatePath("/admin/settings");
+
+  return {
+    ok: true,
+    message: enabled
+      ? "Saved. It arrives first thing, and only on mornings there's something to say."
+      : "Saved, and the morning note is switched off.",
+  };
+}

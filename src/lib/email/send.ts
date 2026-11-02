@@ -699,3 +699,46 @@ Tausha
 ${site.name}`,
   });
 }
+
+/**
+ * The morning note.
+ *
+ * Deliberately plain: a list she can read on a phone before she has put the
+ * kettle on, with the things that actually need her at the top and nothing
+ * dressed up. The one piece of colour is reserved for what is urgent, so it
+ * still means something when it appears.
+ */
+export async function sendMorningDigest(opts: {
+  to: string;
+  date: string;
+  headline: string;
+  money: string[];
+  sections: { title: string; lines: { text: string; urgent?: boolean }[] }[];
+  text: string;
+}): Promise<SendResult> {
+  const line = (l: { text: string; urgent?: boolean }) =>
+    `<li style="margin-bottom:6px;color:${l.urgent ? "#7c2e3e" : "#3a372f"};">${
+      l.urgent ? `<strong>${l.text}</strong>` : l.text
+    }</li>`;
+
+  const section = (s: (typeof opts.sections)[number]) =>
+    s.lines.length === 0
+      ? ""
+      : `<p style="margin:18px 0 6px;font-size:12px;letter-spacing:0.12em;text-transform:uppercase;color:#8a7f6a;">${s.title}</p>
+         <ul style="margin:0 0 4px;padding-left:20px;">${s.lines.map(line).join("")}</ul>`;
+
+  const body = `
+    ${P(opts.headline)}
+    ${NOTE(opts.money.join("<br>"))}
+    ${opts.sections.map(section).join("")}`;
+
+  return send({
+    to: opts.to,
+    subject: `Room Within — ${opts.date}`,
+    html: shell("This morning", body, {
+      preview: opts.money[0] ?? "Today at Room Within",
+      cta: { label: "Open the admin area", url: `${SITE_URL}/admin` },
+    }),
+    text: opts.text,
+  });
+}

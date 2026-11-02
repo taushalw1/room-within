@@ -20,6 +20,46 @@ const m = await import("../src/lib/email/send.ts");
 
 await m.sendWelcome({ to: "someone@example.com", name: "Sarah" });
 
+await m.sendMorningDigest({
+  to: "someone@example.com",
+  date: "2026-11-02",
+  headline: "Good morning. 3 things need you today.",
+  money: [
+    "$1,205.00 is overdue across 2 invoices.",
+    "$650.00 falls due today.",
+    "$550.00 came in yesterday.",
+  ],
+  sections: [
+    {
+      title: "Today",
+      lines: [
+        { text: "9:30 AM — The Gathering Room, prenatal group" },
+        { text: "2:00 PM — Studio, pottery class (still unconfirmed)", urgent: true },
+      ],
+    },
+    {
+      title: "Repairs waiting",
+      lines: [
+        { text: "Radiator in the office won't heat — Joel Ferrand, waiting 5 days", urgent: true },
+        { text: "Kitchen tap drips overnight — Priya Raghunathan, waiting 2 days" },
+      ],
+    },
+    {
+      title: "Tenancies ending",
+      lines: [
+        { text: "Office 1 — Front — Marla Devereux, lease ends in 24 days", urgent: true },
+      ],
+    },
+    {
+      title: "Move-outs",
+      lines: [
+        { text: "Joel Ferrand — leaving in 18 days, still working through the list" },
+      ],
+    },
+  ],
+  text: "Room Within - 2026-11-02",
+});
+
 await m.sendDonationThanks({
   to: "someone@example.com",
   name: "Sarah",
