@@ -2,7 +2,7 @@
 
 *2 November 2026*
 
-Nine things went in today. None of them need anything from you to start
+Ten things went in today. None of them need anything from you to start
 working, except the two with switches, which are described at the end.
 
 ---
@@ -213,6 +213,45 @@ choosing for you — it's making sure the right two names are in front of you
 that morning instead of in a notebook. An empty room costs its rent every
 month it's empty, and knowing who to ring is the only thing that shortens
 that.
+
+---
+
+## 10. One screen for a new renter
+
+A new page: **Rentals → Move somebody in**. Everything about a new renter in
+one go, rather than scattered across four places.
+
+Who they are, which room, when it starts, the rent, the deposit — and then the
+things you'd otherwise write on an envelope: the emergency contact, how many
+keys you handed over, their car and parking stall, who else is living there.
+
+Picking a room fills in the rent and deposit from its asking price. Picking
+somebody off the waiting list fills in their name and number and takes them
+off the list. Only empty rooms are offered, so you can't accidentally put two
+people in one.
+
+At the end it offers to raise their first rent invoice and send them a welcome
+email with their sign-in link. Both ticked by default.
+
+None of those extra details are wanted on the day, which is exactly why they
+get skipped — and every one of them is wanted at an awkward moment later. So
+the emergency contact now shows on the room list in red, where you'd actually
+look for it at eleven at night. The key count and the car come back up at the
+walk-through when somebody leaves, next to the clean-out list.
+
+---
+
+## One thing that was quietly broken
+
+The app could show **"Application error"** on a page that was perfectly fine —
+most likely on your phone, after an update, with no way for you to clear it.
+
+The cause: the part of the app that makes it work offline was holding on to
+old program files and handing them out instead of the new ones. It's fixed,
+and the app now throws away everything it had saved the next time you open it.
+
+If you ever see that error again, tell Tyler it's the service worker and he'll
+know what it means.
 
 ---
 
