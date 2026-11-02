@@ -60,6 +60,37 @@ scratch directory instead. `build` is only for deploying.
 If a preview ever does break that way: stop the server, delete `.next`, and
 start it again.
 
+### When a page dies in the browser but the server is fine
+
+Symptom: the page server-renders correctly, then the browser shows
+*"Application error: a client-side exception has occurred"*. The console says
+`Cannot read properties of undefined (reading 'call')` at `options.factory`.
+Nothing in the server log, nothing in `npm run check`.
+
+**Check the service worker before anything else.** This has cost most of an
+afternoon twice, because every other explanation — a broken component, a bad
+import, a corrupt `.next` — is more plausible, and all of them were wrong. The
+worker had cached a route chunk served at a fixed path, and was handing out
+last week's JavaScript underneath today's HTML. It is fixed in `public/sw.js`
+and `npm run check:sw` guards the rule, but a browser that cached a bad entry
+before the fix keeps it until the worker updates.
+
+To clear it in a browser pane or on a phone, run this in the page console:
+
+```js
+(await navigator.serviceWorker.getRegistrations()).forEach((r) => r.unregister());
+(await caches.keys()).forEach((k) => caches.delete(k));
+```
+
+To prove it rather than guess, compare what the browser got with what the
+server has — `fromCache: true` on a route chunk is the answer:
+
+```js
+performance.getEntriesByType("resource")
+  .filter((r) => r.name.includes("/_next/static/chunks/"))
+  .map((r) => ({ url: r.name, fromCache: r.transferSize === 0 }));
+```
+
 ---
 
 ## Rules when working with Tyler
