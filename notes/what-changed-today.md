@@ -2,7 +2,7 @@
 
 *2 November 2026*
 
-Ten things went in today. None of them need anything from you to start
+Thirteen things went in today. None of them need anything from you to start
 working, except the two with switches, which are described at the end.
 
 ---
@@ -238,6 +238,70 @@ get skipped — and every one of them is wanted at an awkward moment later. So
 the emergency contact now shows on the room list in red, where you'd actually
 look for it at eleven at night. The key count and the car come back up at the
 walk-through when somebody leaves, next to the clean-out list.
+
+---
+
+## 11. Photograph a receipt instead of typing it
+
+On the Finance page, when you go to record a cost, there's now a **Take a
+photo of the receipt** button. Point your phone at the receipt and the boxes
+fill themselves in — date, who it was paid to, the total, the GST, how you
+paid, and what it was for.
+
+**Nothing is saved until you press the button.** It fills the form and stops.
+Check the total and the date against the paper, then save as you would have
+anyway.
+
+It will also tell you what it *couldn't* read rather than guessing. Tested on
+a receipt torn off above the total, it left the date, total and tax blank and
+said why — including that "10/11/2026" could mean the 10th of November or the
+11th of October, so it wouldn't choose.
+
+It picks from the categories you already use, so things get filed your way.
+
+---
+
+## 12. What the next six months look like
+
+On the Finance page. Rent coming in from current tenancies, invoices already
+raised, your regular costs going out, and what's left in the account at the
+end of each month.
+
+Two things make it worth trusting:
+
+**A tenancy that ends stops paying.** If a room empties in March, March is
+where it shows — which is the only reason to look ahead at all.
+
+**It's cautious about costs.** Only things you've actually paid in at least
+three of the last six months count as regular, at the middle figure rather
+than the average, so one big repair never becomes a monthly expectation. And
+nothing hoped for is in it — no grant that might come, no room that might let.
+A forecast with hopes in it is a wish.
+
+It needs one number nobody can look up for you: **what's actually in the
+account**. Type it in at the top and the rest becomes useful. It's dated, and
+after six weeks the page tells you it's gone stale rather than quietly
+pretending.
+
+---
+
+## 13. A record of what changed
+
+A new page: **What changed**. Every change to the money and the tenancies —
+who made it, and when. Rent went from $850 to $890, a cost was added, a late
+fee was charged overnight.
+
+Changes the app made on its own are listed too, as "the app, on its own" —
+the overnight rent run, a payment arriving from Stripe. Those are the hardest
+to account for afterwards, which is exactly why they're there.
+
+**It can't be edited or deleted by anyone**, including Tyler, including
+anything with full access to the database. A record that can be tidied up
+isn't a record.
+
+**Counselling notes are deliberately not in it.** They're health information,
+and a second copy sitting in a list meant to be read later is precisely what
+the law is there to prevent.
 
 ---
 
