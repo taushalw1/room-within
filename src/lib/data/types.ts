@@ -555,3 +555,73 @@ export type MaintenanceRequestRow = {
   created_at: string;
   updated_at: string;
 };
+
+/* --- Ending a tenancy ----------------------------------------------------- */
+
+export type MoveOutStatus = "open" | "tenant_done" | "inspected" | "settled";
+
+export type MoveOutRow = {
+  id: string;
+  lease_id: string;
+  unit_id: string | null;
+  contact_id: string | null;
+  leaving_on: string;
+  forwarding_address: string | null;
+  forwarding_email: string | null;
+  status: MoveOutStatus;
+  inspected_on: string | null;
+  inspection_notes: string | null;
+  tenant_signature_event: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type MoveOutItemRow = {
+  id: string;
+  move_out_id: string;
+  position: number;
+  area: string;
+  title: string;
+  detail: string | null;
+  done_by_tenant: boolean;
+  tenant_note: string | null;
+  /** Null until Tausha has looked at it. */
+  checked_by_admin: boolean | null;
+  admin_note: string | null;
+  charge_cents: number | null;
+  photo_path: string | null;
+  created_at: string;
+};
+
+/** One movement of deposit money. Positive is in, negative is out. */
+export type DepositEntryRow = {
+  id: string;
+  lease_id: string;
+  move_out_id: string | null;
+  amount_cents: number;
+  kind: "held" | "interest" | "deduction" | "returned";
+  reason: string;
+  occurred_on: string;
+  evidence_path: string | null;
+  created_at: string;
+};
+
+/** An append-only record that somebody signed something. */
+export type SignatureEventRow = {
+  id: string;
+  document_type: "lease" | "move_out" | "condition_report" | "policy" | "other";
+  document_id: string | null;
+  document_title: string;
+  document_text: string;
+  signed_by: string;
+  signer_name: string;
+  signer_email: string;
+  signature_path: string | null;
+  signed_at: string;
+  ip: string | null;
+  user_agent: string | null;
+  document_hash: string;
+  prev_hash: string | null;
+  record_hash: string;
+  verify_code: string;
+};

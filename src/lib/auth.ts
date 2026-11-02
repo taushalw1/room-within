@@ -9,7 +9,10 @@ const DEMO_ADMIN: CurrentUser = {
   email: "demo@roomwithin.local",
   fullName: "Tausha (demo)",
   role: "admin",
-  contactId: null,
+  // Pointed at one of the sample tenants, so demo mode can show the renter's
+  // side of the app — the tenancy, the clean-out list, the deposit — and not
+  // just the admin side. Nothing outside demo mode reads this.
+  contactId: "c2",
 };
 
 export type CurrentUser = {

@@ -25,6 +25,8 @@ import { signedUrl } from "@/lib/maintenance-files";
 import { MyRequest, ReportIssueForm } from "@/components/site/MaintenanceForms";
 import { SignaturePad } from "@/components/site/SignaturePad";
 import { signatureUrl } from "@/lib/signature-files";
+import { getMyMoveOut, getSignatureEvent } from "@/lib/data/move-out";
+import { MoveOutChecklist } from "@/components/site/MoveOutChecklist";
 import { site } from "@/lib/site";
 
 export const metadata: Metadata = {
@@ -91,6 +93,12 @@ export default async function PortalPage() {
       };
     }
   }
+  // A tenancy that is ending, if one is.
+  const moveOut = await getMyMoveOut(user.contactId);
+  const moveOutSignature = await getSignatureEvent(
+    moveOut?.moveOut.tenant_signature_event ?? null,
+  );
+
   const myRequests = user.contactId ? await getMaintenance() : [];
   const requestPhotos = await Promise.all(
     myRequests.map((r) => signedUrl(r.photo_path)),
@@ -275,6 +283,21 @@ export default async function PortalPage() {
             <SignaturePad existing={mySignature} />
           </div>
         </Card>
+
+        {moveOut && (
+          <Card className="mt-8">
+            <CardHeader
+              title="Leaving"
+              description="The clean-out list, so there are no surprises at the end and nothing comes off your deposit that shouldn't."
+            />
+            <MoveOutChecklist
+              moveOut={moveOut.moveOut}
+              items={moveOut.items}
+              hasSignature={Boolean(mySignature)}
+              verifyCode={moveOutSignature?.verify_code ?? null}
+            />
+          </Card>
+        )}
 
         {membership && (
           <Card className="mt-8">

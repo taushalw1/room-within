@@ -22,6 +22,8 @@ import {
 } from "@/components/ui/Table";
 import { cn } from "@/lib/cn";
 import { TenancyRow } from "@/components/admin/TenancyRow";
+import { StartMoveOutForm } from "@/components/admin/MoveOutAdmin";
+import { getMoveOuts } from "@/lib/data/move-out";
 import {
   getAllLeases,
   getContactNameMap,
@@ -54,7 +56,7 @@ export default async function RentalsPage({
 }) {
   const { filter = "all" } = await searchParams;
 
-  const [invoices, units, allLeases, contacts, contactList, occupancy] =
+  const [invoices, units, allLeases, contacts, contactList, occupancy, moveOuts] =
     await Promise.all([
       getInvoices(),
       getUnits(),
@@ -62,7 +64,10 @@ export default async function RentalsPage({
       getContactNameMap(),
       getContacts(),
       getOccupancy(),
+      getMoveOuts(),
     ]);
+
+  const leaving = moveOuts.filter((m) => m.status !== "settled");
 
   const leases = allLeases.filter((l) => l.status === "active");
   const endedLeases = allLeases.filter((l) => l.status === "ended");
@@ -235,6 +240,64 @@ export default async function RentalsPage({
             )}
           </tbody>
         </Table>
+      </Card>
+
+      {/* ---------- Ending ---------- */}
+      <Card>
+        <CardHeader
+          title="Leaving"
+          description="The clean-out list, the walk-through and the deposit, in one place — so the end of a tenancy is a record rather than a memory."
+        />
+        {leaving.length > 0 && (
+          <ul className="divide-y divide-tan/20 border-b border-tan/20">
+            {leaving.map((m) => {
+              const who = m.contact_id ? contacts.get(m.contact_id)?.full_name : null;
+              const unit = units.find((u) => u.id === m.unit_id);
+              return (
+                <li key={m.id}>
+                  <Link
+                    href={`/admin/rentals/move-out/${m.id}`}
+                    className="flex flex-wrap items-center justify-between gap-3 px-5 py-4 hover:bg-sage-pale/30"
+                  >
+                    <span className="min-w-0">
+                      <span className="block font-medium text-ink">
+                        {who ?? "A tenant"}
+                      </span>
+                      <span className="block text-sm text-ink-soft">
+                        {unit?.name ?? "Unit"} · out {dateShort(m.leaving_on)}
+                      </span>
+                    </span>
+                    <Badge
+                      tone={
+                        m.status === "open"
+                          ? "warn"
+                          : m.status === "tenant_done"
+                            ? "info"
+                            : "good"
+                      }
+                    >
+                      {m.status === "open"
+                        ? "With them"
+                        : m.status === "tenant_done"
+                          ? "Signed — walk-through next"
+                          : "Inspected"}
+                    </Badge>
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+        <StartMoveOutForm
+          tenancies={leases
+            .filter((l) => !leaving.some((m) => m.lease_id === l.id))
+            .map((l) => ({
+              id: l.id,
+              label: `${units.find((u) => u.id === l.unit_id)?.name ?? "Unit"} — ${
+                contacts.get(l.contact_id)?.full_name ?? "tenant"
+              }`,
+            }))}
+        />
       </Card>
 
       {/* ---------- Past tenancies ---------- */}

@@ -115,7 +115,12 @@ export async function signDocument(args: {
   documentId: string | null;
   documentTitle: string;
   documentText: string;
-}): Promise<{ ok: boolean; message: string; verifyCode?: string }> {
+}): Promise<{
+  ok: boolean;
+  message: string;
+  verifyCode?: string;
+  eventId?: string;
+}> {
   const user = await requireUser("/portal");
   if (isDemoMode) return DEMO;
 
@@ -156,7 +161,7 @@ export async function signDocument(args: {
       record_hash: "",
       verify_code: "",
     })
-    .select("verify_code")
+    .select("id, verify_code")
     .single();
 
   if (error) return { ok: false, message: `Couldn't record that: ${error.message}` };
@@ -164,9 +169,12 @@ export async function signDocument(args: {
   revalidatePath("/portal");
   revalidatePath("/admin/rentals");
 
+  const event = data as { id: string; verify_code: string };
+
   return {
     ok: true,
     message: "Signed and recorded.",
-    verifyCode: (data as { verify_code: string }).verify_code,
+    verifyCode: event.verify_code,
+    eventId: event.id,
   };
 }
