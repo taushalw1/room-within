@@ -197,3 +197,39 @@ export async function readReceiptPhoto(
     ? { ok: true, reading: result.reading }
     : { ok: false, message: result.reason };
 }
+
+/** What is in the account today, dated so its age is visible. */
+export async function updateCashBalance(
+  _prev: ActionResult | null,
+  formData: FormData,
+): Promise<ActionResult> {
+  await requireAdmin();
+  if (isDemoMode) return DEMO_RESULT;
+
+  const dollars = Number(formData.get("balance") ?? "");
+  if (!Number.isFinite(dollars) || dollars < 0) {
+    return { ok: false, message: "That amount doesn't look right." };
+  }
+
+  const supabase = await getServerSupabase();
+  if (!supabase) return { ok: false, message: "No database connection." };
+
+  const { error } = await supabase.from("settings").upsert(
+    {
+      key: "cash",
+      value: {
+        balance_cents: Math.round(dollars * 100),
+        as_of: new Date().toISOString().slice(0, 10),
+      },
+      updated_at: new Date().toISOString(),
+    },
+    { onConflict: "key" },
+  );
+
+  if (error) return { ok: false, message: `Couldn't save that: ${error.message}` };
+
+  revalidatePath("/admin/finance");
+  revalidatePath("/admin");
+
+  return { ok: true, message: "Saved. The forecast below counts from this." };
+}

@@ -5,6 +5,9 @@ import { ExpenseForm } from "@/components/admin/ExpenseForm";
 import { ExpenseRow } from "@/components/admin/ExpenseRow";
 import { MonthlyChart } from "@/components/admin/MonthlyChart";
 import { RoomEconomics } from "@/components/admin/RoomEconomics";
+import { CashForecast } from "@/components/admin/CashForecast";
+import { getForecast } from "@/lib/data/forecast";
+import { getCashSettings } from "@/lib/data/settings";
 import { getRoomYears } from "@/lib/data/rooms";
 import { Stat } from "@/components/admin/Stat";
 import {
@@ -51,7 +54,11 @@ export default async function FinancePage() {
   const yearFrom = `${thisYear}-01-01`;
   const yearTo = `${thisYear}-12-31`;
 
-  const rooms = await getRoomYears(yearFrom, yearTo);
+  const [rooms, forecast, cash] = await Promise.all([
+    getRoomYears(yearFrom, yearTo),
+    getForecast(),
+    getCashSettings(),
+  ]);
 
   const [
     invoices,
@@ -236,6 +243,15 @@ export default async function FinancePage() {
           icon={HandHeart}
         />
       </div>
+
+      <Card>
+        <CardHeader
+          title="What the next six months look like"
+          tone="olive"
+          description="If nothing changes. What is known and what is guessed are kept apart, and nothing hoped for is in it."
+        />
+        <CashForecast forecast={forecast} cash={cash} />
+      </Card>
 
       <Card>
         <CardHeader

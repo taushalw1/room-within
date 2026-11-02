@@ -36,6 +36,11 @@ function run(command, args, env = {}) {
 const swCode = await run("node", ["scripts/check-sw.mjs"]);
 if (swCode !== 0) process.exit(swCode);
 
+// Money arithmetic, against cases with a known answer. Cheap, and the kind of
+// thing a build will never catch.
+const forecastCode = await run("npx", ["--yes", "tsx", "scripts/check-forecast.mts"]);
+if (forecastCode !== 0) process.exit(forecastCode);
+
 const buildCode = await run("npx", ["next", "build"], {
   NEXT_DIST_DIR: ".next-check",
 });

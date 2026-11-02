@@ -79,3 +79,19 @@ export function lateFeeFor(
   // Never charge a fee larger than the debt it is attached to.
   return Math.max(0, Math.min(capped, invoice.balance_cents));
 }
+
+/**
+ * What is actually in the account, and when she last said so.
+ *
+ * There is no bank connection, so this is a figure Tausha types. It is dated
+ * because a forecast built on a number from three months ago is worse than no
+ * forecast — the page says how old it is and stops pretending once it is
+ * stale.
+ */
+export type CashSettings = { balance_cents: number; as_of: string | null };
+
+export const DEFAULT_CASH: CashSettings = { balance_cents: 0, as_of: null };
+
+export function getCashSettings(): Promise<CashSettings> {
+  return readSetting("cash", DEFAULT_CASH);
+}
