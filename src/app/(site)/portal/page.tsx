@@ -27,6 +27,8 @@ import { SignaturePad } from "@/components/site/SignaturePad";
 import { signatureUrl } from "@/lib/signature-files";
 import { getMyMoveOut, getSignatureEvent } from "@/lib/data/move-out";
 import { MoveOutChecklist } from "@/components/site/MoveOutChecklist";
+import { AvatarPicker } from "@/components/site/AvatarPicker";
+import { avatarUrl } from "@/lib/avatar-files";
 import { site } from "@/lib/site";
 
 export const metadata: Metadata = {
@@ -75,23 +77,47 @@ export default async function PortalPage() {
 
   const tenancy = await getMyLease(user.contactId);
 
-  // Their drawn signature, if they've added one.
-  let mySignature: { url: string | null; createdAt: string } | null = null;
+  // Their signature, if they've added one.
+  let mySignature: {
+    url: string | null;
+    createdAt: string;
+    source: "drawn" | "uploaded";
+  } | null = null;
   {
     const supabase = await getServerSupabase();
     const { data } = (await supabase
       ?.from("signatures")
-      .select("image_path, created_at")
+      .select("image_path, created_at, source")
       .eq("profile_id", user.id)
       .maybeSingle()) ?? { data: null };
 
-    const row = data as { image_path: string; created_at: string } | null;
+    const row = data as {
+      image_path: string;
+      created_at: string;
+      source: "drawn" | "uploaded" | null;
+    } | null;
     if (row) {
       mySignature = {
         url: await signatureUrl(row.image_path),
         createdAt: row.created_at,
+        source: row.source ?? "drawn",
       };
     }
+  }
+
+  // Their profile picture.
+  let myAvatar: string | null = null;
+  {
+    const supabase = await getServerSupabase();
+    const { data } = (await supabase
+      ?.from("profiles")
+      .select("avatar_path")
+      .eq("id", user.id)
+      .maybeSingle()) ?? { data: null };
+
+    myAvatar = await avatarUrl(
+      (data as { avatar_path: string | null } | null)?.avatar_path ?? null,
+    );
   }
   // A tenancy that is ending, if one is.
   const moveOut = await getMyMoveOut(user.contactId);
@@ -271,6 +297,17 @@ export default async function PortalPage() {
               ))}
             </ul>
           )}
+        </Card>
+
+        {/* ---------- Picture ---------- */}
+        <Card className="mt-8">
+          <CardHeader
+            title="Your picture"
+            description="So people here see a face rather than an email address."
+          />
+          <div className="px-5 py-5">
+            <AvatarPicker existing={myAvatar} />
+          </div>
         </Card>
 
         {/* ---------- Signature ---------- */}

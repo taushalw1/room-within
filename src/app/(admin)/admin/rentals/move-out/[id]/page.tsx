@@ -122,6 +122,14 @@ export default async function MoveOutPage({
                   <dt className="eyebrow !text-[0.58rem] text-bark">Reference</dt>
                   <dd className="font-mono text-ink">{signature.verify_code}</dd>
                 </div>
+                <div>
+                  <dt className="eyebrow !text-[0.58rem] text-bark">Signature</dt>
+                  <dd className="text-ink">
+                    {signature.signature_source === "uploaded"
+                      ? "Uploaded as a picture"
+                      : "Drawn on their own device"}
+                  </dd>
+                </div>
               </dl>
             </div>
 

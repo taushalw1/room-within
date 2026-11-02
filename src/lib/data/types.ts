@@ -617,6 +617,8 @@ export type SignatureEventRow = {
   signer_name: string;
   signer_email: string;
   signature_path: string | null;
+  /** Drawn on their own device, or uploaded as a picture. */
+  signature_source: "drawn" | "uploaded";
   signed_at: string;
   ip: string | null;
   user_agent: string | null;

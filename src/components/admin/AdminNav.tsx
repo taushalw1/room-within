@@ -19,6 +19,7 @@ import {
   GraduationCap,
   Landmark,
   Plane,
+  UserRound,
 } from "lucide-react";
 import { LogoLockup } from "@/components/brand/Logo";
 import { cn } from "@/lib/cn";
@@ -73,9 +74,19 @@ export function AdminNav() {
         );
       })}
 
+      {/* Her own picture and signature live with everyone else's, on the
+          account page, rather than being duplicated into the admin area. */}
+      <Link
+        href="/portal"
+        className="mt-auto hidden items-center gap-2.5 rounded-[var(--radius-card)] px-3 py-2.5 text-sm text-ink-faint transition-colors hover:text-olive-deep lg:flex"
+      >
+        <UserRound className="h-4 w-4 shrink-0" aria-hidden />
+        Your picture and signature
+      </Link>
+
       <Link
         href="/"
-        className="mt-auto hidden items-center gap-2.5 rounded-[var(--radius-card)] px-3 py-2.5 text-sm text-ink-faint transition-colors hover:text-olive-deep lg:flex"
+        className="hidden items-center gap-2.5 rounded-[var(--radius-card)] px-3 py-2.5 text-sm text-ink-faint transition-colors hover:text-olive-deep lg:flex"
       >
         <ExternalLink className="h-4 w-4 shrink-0" aria-hidden />
         View public site

@@ -78,11 +78,17 @@ export async function saveSignature(
 
   // Written through the user's own session, so the policy (profile_id =
   // auth.uid()) is what decides whether it lands.
+  // Recorded, not judged. A photograph of a signature on paper is weaker
+  // evidence than one drawn on the device in front of you, and anyone looking
+  // at this later should be told which it was rather than left to assume.
+  const source = formData.get("source") === "uploaded" ? "uploaded" : "drawn";
+
   const { error } = await supabase.from("signatures").upsert(
     {
       profile_id: user.id,
       contact_id: user.contactId,
       image_path: path,
+      source,
       created_ip: ip,
       created_ua: userAgent,
     },
@@ -129,7 +135,7 @@ export async function signDocument(args: {
 
   const { data: sig } = await supabase
     .from("signatures")
-    .select("image_path")
+    .select("image_path, source")
     .eq("profile_id", user.id)
     .maybeSingle();
 
@@ -154,6 +160,10 @@ export async function signDocument(args: {
       signer_name: user.fullName ?? user.email ?? "Unknown",
       signer_email: user.email ?? "",
       signature_path: (sig as { image_path: string }).image_path,
+      signature_source:
+        (sig as { source: string | null }).source === "uploaded"
+          ? "uploaded"
+          : "drawn",
       ip,
       user_agent: userAgent,
       // These are set by the database trigger; the values sent are ignored.
