@@ -627,3 +627,49 @@ export type SignatureEventRow = {
   record_hash: string;
   verify_code: string;
 };
+
+/* --- Looking after the building ------------------------------------------- */
+
+export type ContractorRow = {
+  id: string;
+  name: string;
+  trade: string;
+  phone: string | null;
+  email: string | null;
+  notes: string | null;
+  /** How it went last time, in her own words. */
+  how_it_went: string | null;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+};
+
+export type RecurringTaskRow = {
+  id: string;
+  title: string;
+  detail: string | null;
+  unit_id: string | null;
+  area: string | null;
+  every_months: number;
+  last_done_on: string | null;
+  next_due_on: string;
+  contractor_id: string | null;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+};
+
+export type WarrantyRow = {
+  id: string;
+  item: string;
+  unit_id: string | null;
+  supplier: string | null;
+  supplier_phone: string | null;
+  purchased_on: string | null;
+  expires_on: string | null;
+  cost_cents: number | null;
+  document_path: string | null;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+};

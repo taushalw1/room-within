@@ -8,7 +8,7 @@ const iso = (days: number) => addDays(new Date(), days).toISOString();
 export const sampleMaintenance: MaintenanceRequestRow[] = [
   {
     id: "mr-1",
-    unit_id: "unit-2",
+    unit_id: "u2",
     lease_id: null,
     contact_id: "c3",
     reported_by: "Priya Raghunathan",
@@ -31,7 +31,7 @@ export const sampleMaintenance: MaintenanceRequestRow[] = [
   },
   {
     id: "mr-2",
-    unit_id: "unit-1",
+    unit_id: "u1",
     lease_id: null,
     contact_id: "c1",
     reported_by: "Marla Devereux",
@@ -53,7 +53,7 @@ export const sampleMaintenance: MaintenanceRequestRow[] = [
   },
   {
     id: "mr-3",
-    unit_id: "unit-2",
+    unit_id: "u2",
     lease_id: null,
     contact_id: "c3",
     reported_by: "Priya Raghunathan",

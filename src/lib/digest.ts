@@ -26,6 +26,7 @@ export type Digest = {
   };
   repairs: DigestLine[];
   today: DigestLine[];
+  building: DigestLine[];
   leases: DigestLine[];
   moveOuts: DigestLine[];
   /** True when there is genuinely nothing worth an email. */
@@ -44,8 +45,17 @@ export async function buildDigest(
   const today = day(now);
   const yesterday = day(addDays(now, -1));
 
-  const [invoiceRes, repairRes, bookingRes, eventRes, leaseRes, moveOutRes, paymentRes] =
-    await Promise.all([
+  const [
+    invoiceRes,
+    repairRes,
+    bookingRes,
+    eventRes,
+    leaseRes,
+    moveOutRes,
+    paymentRes,
+    taskRes,
+    warrantyRes,
+  ] = await Promise.all([
       supabase
         .from("invoice_balances")
         .select("*, contacts:contact_id (full_name)")
@@ -83,6 +93,19 @@ export async function buildDigest(
         .select("amount_cents, received_at")
         .gte("received_at", `${yesterday}T00:00:00`)
         .lte("received_at", `${yesterday}T23:59:59`),
+      supabase
+        .from("recurring_tasks")
+        .select("title, next_due_on, area")
+        .eq("is_active", true)
+        .lte("next_due_on", day(addDays(now, 7)))
+        .order("next_due_on"),
+      supabase
+        .from("warranties")
+        .select("item, expires_on, supplier")
+        .not("expires_on", "is", null)
+        .gte("expires_on", today)
+        .lte("expires_on", day(addDays(now, 60)))
+        .order("expires_on"),
     ]);
 
   type Named = { full_name: string } | null;
@@ -198,6 +221,50 @@ export async function buildDigest(
     };
   });
 
+  /* --- The building itself -------------------------------------------------- */
+
+  // Only what is due inside a week, or already late. A furnace service booked
+  // for next spring is not a thing she needs to think about this morning.
+  const tasks =
+    (taskRes.data as unknown as {
+      title: string;
+      next_due_on: string;
+      area: string | null;
+    }[]) ?? [];
+
+  const warranties =
+    (warrantyRes.data as unknown as {
+      item: string;
+      expires_on: string;
+      supplier: string | null;
+    }[]) ?? [];
+
+  const buildingLines: DigestLine[] = [
+    ...tasks.map((t) => {
+      const days = differenceInCalendarDays(new Date(`${t.next_due_on}T00:00:00`), now);
+      const when =
+        days < 0
+          ? `${-days} ${-days === 1 ? "day" : "days"} late`
+          : days === 0
+            ? "due today"
+            : `due in ${days} ${days === 1 ? "day" : "days"}`;
+      return {
+        text: `${t.title}${t.area ? ` (${t.area})` : ""} — ${when}`,
+        urgent: days < 0,
+      };
+    }),
+    ...warranties.map((w) => {
+      const days = differenceInCalendarDays(new Date(`${w.expires_on}T00:00:00`), now);
+      return {
+        text: `${w.item} — cover runs out in ${days} ${days === 1 ? "day" : "days"}${
+          w.supplier ? `, ${w.supplier}` : ""
+        }`,
+        // Worth a look while there is still time to make a claim.
+        urgent: days <= 14,
+      };
+    }),
+  ];
+
   const moneyBits = {
     overdueCents: overdue.reduce((t, i) => t + i.balance_cents, 0),
     overdueCount: overdue.length,
@@ -211,6 +278,7 @@ export async function buildDigest(
     money: moneyBits,
     repairs: repairLines,
     today: todayLines,
+    building: buildingLines,
     leases: leaseLines,
     moveOuts: moveOutLines,
     // Overdue money alone isn't news — it was overdue yesterday too. The email
@@ -219,6 +287,7 @@ export async function buildDigest(
     quiet:
       repairLines.length === 0 &&
       todayLines.length === 0 &&
+      buildingLines.length === 0 &&
       leaseLines.length === 0 &&
       moveOutLines.length === 0 &&
       moneyBits.dueTodayCount === 0 &&
@@ -243,6 +312,7 @@ export function digestAsText(d: Digest): string {
       : ``,
     section("Today", d.today),
     section("Repairs waiting", d.repairs),
+    section("The building", d.building),
     section("Tenancies ending", d.leases),
     section("Move-outs", d.moveOuts),
   ]

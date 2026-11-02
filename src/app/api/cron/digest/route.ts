@@ -76,6 +76,7 @@ export async function GET(request: Request) {
 
   const needsHer =
     digest.repairs.filter((r) => r.urgent).length +
+    digest.building.filter((b) => b.urgent).length +
     digest.leases.filter((l) => l.urgent).length +
     digest.moveOuts.filter((m) => m.urgent).length;
 
@@ -90,6 +91,7 @@ export async function GET(request: Request) {
     sections: [
       { title: "Today", lines: digest.today },
       { title: "Repairs waiting", lines: digest.repairs },
+      { title: "The building", lines: digest.building },
       { title: "Tenancies ending", lines: digest.leases },
       { title: "Move-outs", lines: digest.moveOuts },
     ],

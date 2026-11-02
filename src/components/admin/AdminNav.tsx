@@ -20,6 +20,7 @@ import {
   Landmark,
   Plane,
   UserRound,
+  Hammer,
 } from "lucide-react";
 import { LogoLockup } from "@/components/brand/Logo";
 import { cn } from "@/lib/cn";
@@ -29,6 +30,7 @@ const links = [
   { href: "/admin/plan", label: "The plan", icon: Flag },
   { href: "/admin/rentals", label: "Rentals", icon: KeyRound },
   { href: "/admin/maintenance", label: "Repairs", icon: Wrench },
+  { href: "/admin/building", label: "The building", icon: Hammer },
   { href: "/admin/bookings", label: "Bookings", icon: CalendarDays },
   { href: "/admin/classes", label: "Classes", icon: GraduationCap },
   { href: "/admin/instructors", label: "Instructors", icon: Award },
