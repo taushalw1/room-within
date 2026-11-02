@@ -7,18 +7,37 @@
  * serving the preview. Building into `.next` underneath a running dev server
  * corrupts it.
  *
+ * The service-worker check runs first because it is instant and because the
+ * bug it guards against does not show up in a build at all: a stale cached
+ * chunk produces a perfectly good deployment that dies in somebody's browser
+ * with "Application error" and no way for them to clear it.
+ *
  * Use this to check your work. `npm run build` is for deploying.
  */
 import { spawn } from "node:child_process";
 
-const child = spawn(
-  process.platform === "win32" ? "npx.cmd" : "npx",
-  ["next", "build"],
-  {
-    stdio: "inherit",
-    env: { ...process.env, NEXT_DIST_DIR: ".next-check" },
-    shell: process.platform === "win32",
-  },
-);
+const isWindows = process.platform === "win32";
 
-child.on("exit", (code) => process.exit(code ?? 1));
+// `node` is an .exe on Windows, `npx` a .cmd — appending .cmd to both finds
+// neither.
+function run(command, args, env = {}) {
+  const binary = isWindows && command !== "node" ? `${command}.cmd` : command;
+
+  return new Promise((resolve) => {
+    const child = spawn(binary, args, {
+      stdio: "inherit",
+      env: { ...process.env, ...env },
+      shell: isWindows,
+    });
+    child.on("exit", (code) => resolve(code ?? 1));
+  });
+}
+
+const swCode = await run("node", ["scripts/check-sw.mjs"]);
+if (swCode !== 0) process.exit(swCode);
+
+const buildCode = await run("npx", ["next", "build"], {
+  NEXT_DIST_DIR: ".next-check",
+});
+
+process.exit(buildCode);

@@ -20,7 +20,7 @@
  *     cache can always be cleared by shipping a new version.
  */
 
-const VERSION = "v1";
+const VERSION = "v2";
 const SHELL = `roomwithin-shell-${VERSION}`;
 const PAGES = `roomwithin-pages-${VERSION}`;
 
@@ -58,6 +58,29 @@ self.addEventListener("activate", (event) => {
       .then(() => self.clients.claim()),
   );
 });
+
+/**
+ * Does this file's name carry its own fingerprint?
+ *
+ * This is the question the whole asset cache turns on, and the previous
+ * version got it wrong by assuming the answer was always yes for anything
+ * under /_next/static/. Most built files do carry a content hash — change the
+ * file and the name changes with it, so a cached copy can never be the wrong
+ * copy. But App Router route chunks are served at plain paths like
+ * /_next/static/chunks/app/admin/rentals/page.js, and those names stay the
+ * same while their contents change.
+ *
+ * Caching one of those forever is how somebody ends up staring at
+ * "Application error" with yesterday's JavaScript and no way to clear it —
+ * which is exactly the trap this worker was written to avoid, left open at
+ * the one door nobody checked.
+ *
+ * So: a long run of hex in the name means immutable. Everything else is
+ * fetched fresh, with the cached copy kept only for when there is no signal.
+ */
+function isImmutable(pathname) {
+  return /(^|[/.-])[0-9a-f]{8,}([/.]|$)/i.test(pathname);
+}
 
 /** Things that must never be served from a cache. */
 function isPrivate(url) {
@@ -100,8 +123,6 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // Built assets carry a hash in the filename, so a cached copy is always the
-  // right copy. Images and fonts are safe to serve from cache too.
   const cacheable =
     url.pathname.startsWith("/_next/static/") ||
     url.pathname.startsWith("/icons/") ||
@@ -109,17 +130,28 @@ self.addEventListener("fetch", (event) => {
 
   if (!cacheable) return;
 
+  const immutable = isImmutable(url.pathname);
+
   event.respondWith(
-    caches.match(request).then(
-      (cached) =>
-        cached ??
-        fetch(request).then((response) => {
-          if (response.ok) {
-            const copy = response.clone();
-            caches.open(SHELL).then((cache) => cache.put(request, copy));
-          }
-          return response;
-        }),
-    ),
+    (async () => {
+      const cached = await caches.match(request);
+
+      // A file whose name carries its own fingerprint can be served from the
+      // cache forever, because a changed file gets a different name.
+      if (immutable && cached) return cached;
+
+      try {
+        const response = await fetch(request);
+        if (response.ok) {
+          const copy = response.clone();
+          caches.open(SHELL).then((cache) => cache.put(request, copy));
+        }
+        return response;
+      } catch {
+        // Offline. A possibly-stale copy beats nothing.
+        if (cached) return cached;
+        throw new Error("Offline and not cached");
+      }
+    })(),
   );
 });
