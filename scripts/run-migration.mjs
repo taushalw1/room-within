@@ -94,5 +94,11 @@ if (!res.ok) {
 }
 
 console.log(`  ${green("Applied.")}`);
-if (text && text !== "[]" && text.length < 400) console.log(dim(`  ${text}`));
+// Results are printed because this doubles as the way to run a read-only
+// check. The limit was 400 characters, which silently swallowed anything
+// worth reading and looked exactly like a query that returned nothing.
+if (text && text !== "[]") {
+  const shown = text.length > 4000 ? `${text.slice(0, 4000)}… (truncated)` : text;
+  console.log(dim(`  ${shown}`));
+}
 console.log();

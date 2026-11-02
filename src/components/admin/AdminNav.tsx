@@ -21,6 +21,7 @@ import {
   Plane,
   UserRound,
   Hammer,
+  History,
 } from "lucide-react";
 import { LogoLockup } from "@/components/brand/Logo";
 import { cn } from "@/lib/cn";
@@ -41,6 +42,7 @@ const links = [
   { href: "/admin/conferences", label: "Conferences", icon: Plane },
   { href: "/admin/counselling", label: "Counselling", icon: NotebookPen },
   { href: "/admin/contacts", label: "People", icon: Users },
+  { href: "/admin/history", label: "What changed", icon: History },
   { href: "/admin/settings", label: "Settings", icon: Settings },
 ];
 
