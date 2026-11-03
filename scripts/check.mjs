@@ -47,6 +47,12 @@ if (forecastCode !== 0) process.exit(forecastCode);
 const reconcileCode = await run("npx", ["--yes", "tsx", "scripts/check-reconcile.mts"]);
 if (reconcileCode !== 0) process.exit(reconcileCode);
 
+// The accountant's figures, and the file handed over. A wrong number here is
+// one that gets filed, and a cost column a spreadsheet refuses to add up is
+// worse than no file at all.
+const yearEndCode = await run("npx", ["--yes", "tsx", "scripts/check-year-end.mts"]);
+if (yearEndCode !== 0) process.exit(yearEndCode);
+
 const buildCode = await run("npx", ["next", "build"], {
   NEXT_DIST_DIR: ".next-check",
 });

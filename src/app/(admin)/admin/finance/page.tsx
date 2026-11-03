@@ -1,5 +1,6 @@
 import { HandHeart, PiggyBank, Receipt, TrendingUp } from "lucide-react";
 import { PageHeader } from "@/components/admin/PageHeader";
+import { ButtonLink } from "@/components/ui/Button";
 import { AddPanel } from "@/components/admin/AddPanel";
 import { ExpenseForm } from "@/components/admin/ExpenseForm";
 import { ExpenseRow } from "@/components/admin/ExpenseRow";
@@ -542,6 +543,11 @@ export default async function FinancePage() {
         <CardHeader
           title="Year end"
           description="The two figures that turn into paperwork. Neither is urgent until it is."
+          action={
+            <ButtonLink href="/admin/finance/year-end" size="sm" variant="secondary">
+              The whole pack
+            </ButtonLink>
+          }
         />
 
         <div className="border-b border-tan/20 px-5 py-5">
