@@ -24,6 +24,14 @@ export type MoveInFacts = {
   inspectionStarted: boolean;
   /** …and the tenant has signed it, either way. */
   inspectionSigned: boolean;
+  /**
+   * There is an email address on their contact record.
+   *
+   * Signing in is passwordless and the account is matched to the tenancy by
+   * email, so a tenant with no address on file can never reach their own
+   * portal however many times they try.
+   */
+  hasEmail: boolean;
   /** They have an account, and a signature stored on it. */
   hasAccount: boolean;
   hasSignature: boolean;
@@ -50,9 +58,22 @@ export type Step = {
 export function moveInSteps(facts: MoveInFacts, leaseId: string): Step[] {
   const steps: Step[] = [
     {
+      key: "email",
+      label: "Email address on file",
+      todo:
+        "Without one they can never sign in — the account is matched to the " +
+        "tenancy by email address, so there is nothing to match.",
+      done: facts.hasEmail,
+      href: "/admin/contacts",
+      weight: "needed",
+    },
+    {
       key: "account",
       label: "They can sign in",
-      todo: "Invite them, so they can see their rent and report repairs themselves.",
+      todo:
+        "They sign in themselves at the website with the same address you " +
+        "have on file — there's no invite to send. If it isn't working, check " +
+        "the address matches the one they're typing.",
       done: facts.hasAccount,
       href: "/admin/contacts",
       weight: "worth doing",

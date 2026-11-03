@@ -7,7 +7,7 @@ import { LeaseForm } from "@/components/admin/LeaseForm";
 import { Badge, Td } from "@/components/ui/Table";
 import { Button } from "@/components/ui/Button";
 import { deleteLease, endLease } from "@/app/(admin)/admin/rentals/actions";
-import { dateShort, money } from "@/lib/format";
+import { dateShort, lengthOfStay, money } from "@/lib/format";
 import type { ContactRow, LeaseRow, UnitRow } from "@/lib/data/types";
 
 const ordinal = (n: number) =>
@@ -62,7 +62,8 @@ export function TenancyRow({
               )}
               {lease && (
                 <span className="block text-xs text-ink-faint">
-                  since {dateShort(lease.start_date)}
+                  since {dateShort(lease.start_date)} ·{" "}
+                  {lengthOfStay(lease.start_date)}
                 </span>
               )}
             </>

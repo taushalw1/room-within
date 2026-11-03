@@ -23,6 +23,7 @@ export async function getMoveInFacts(
     keysIssued: null,
     depositHeldCents: 0,
     invoiceRaised: false,
+    hasEmail: false,
     inspectionStarted: false,
     inspectionSigned: false,
     hasAccount: false,
@@ -52,7 +53,7 @@ export async function getMoveInFacts(
   const leaseIds = leases.map((l) => l.id);
   const contactIds = [...new Set(leases.map((l) => l.contact_id))];
 
-  const [deposits, invoices, inspections, profiles, sent] = await Promise.all([
+  const [deposits, invoices, inspections, profiles, sent, contacts] = await Promise.all([
     supabase
       .from("deposit_entries")
       .select("lease_id, amount_cents, kind")
@@ -70,7 +71,16 @@ export async function getMoveInFacts(
       .select("contact_id, delivered")
       .in("contact_id", contactIds)
       .eq("delivered", true),
+    supabase.from("contacts").select("id, email").in("id", contactIds),
   ]);
+
+  // Signing in is matched to the tenancy by email address, so a contact with
+  // no address on file is a tenant who can never reach their own portal.
+  const withEmail = new Set(
+    ((contacts.data as { id: string; email: string | null }[]) ?? [])
+      .filter((c) => c.email && c.email.trim() !== "")
+      .map((c) => c.id),
+  );
 
   for (const d of (deposits.data as { lease_id: string; amount_cents: number }[]) ?? []) {
     const facts = out.get(d.lease_id);
@@ -129,6 +139,7 @@ export async function getMoveInFacts(
     if (!facts) continue;
 
     const profileId = profileByContact.get(lease.contact_id);
+    facts.hasEmail = withEmail.has(lease.contact_id);
     facts.hasAccount = Boolean(profileId);
     facts.hasSignature = Boolean(profileId && signedProfiles.has(profileId));
     facts.welcomed = welcomed.has(lease.contact_id);

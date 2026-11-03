@@ -39,6 +39,10 @@ export const sampleUnits: UnitRow[] = [
   { id: "u2", name: "Office 2 — Rear", kind: "office", floor: "Main", description: "Quieter back office.", monthly_rate_cents: 55000, is_active: true, sort_order: 2 },
   { id: "u3", name: "Suite 1", kind: "suite", floor: "Upper", description: "One-bedroom residential suite.", monthly_rate_cents: 95000, is_active: true, sort_order: 3 },
   { id: "u4", name: "Suite 2", kind: "suite", floor: "Upper", description: "Studio suite with the outside stair.", monthly_rate_cents: 85000, is_active: true, sort_order: 4 },
+  // A room added before anybody worked out what to charge for it. This is the
+  // normal state of a new room, and the move-in form has to handle it without
+  // quietly offering a rent of nothing.
+  { id: "u5", name: "Room 5", kind: "office", floor: null, description: null, monthly_rate_cents: 0, is_active: true, sort_order: 5 },
 ];
 
 /** The move-in details, so a sample tenancy looks like a real one. */

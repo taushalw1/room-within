@@ -73,3 +73,32 @@ export function dateTimeRange(start: Date | string, end: Date | string) {
 export function hoursBetween(start: Date | string, end: Date | string) {
   return (new Date(end).getTime() - new Date(start).getTime()) / 3_600_000;
 }
+
+/**
+ * How long somebody has been somewhere, in words.
+ *
+ * Matters most for the tenancies inherited with a building: "since 14 Mar
+ * 2019" is a date you have to do arithmetic on, and "7 years" is the fact you
+ * actually wanted. A long-standing tenant is treated differently from a new
+ * one, and the length of their tenancy is the thing that tells you which.
+ */
+export function lengthOfStay(from: Date | string, to: Date | string = new Date()) {
+  const start = asDate(from);
+  const end = asDate(to);
+
+  let months =
+    (end.getFullYear() - start.getFullYear()) * 12 +
+    (end.getMonth() - start.getMonth());
+
+  // Not a full month until the day of the month has come round again.
+  if (end.getDate() < start.getDate()) months -= 1;
+  if (months < 0) return "not yet started";
+  if (months === 0) return "under a month";
+  if (months < 12) return `${months} month${months === 1 ? "" : "s"}`;
+
+  const years = Math.floor(months / 12);
+  const rest = months % 12;
+
+  if (rest === 0) return `${years} year${years === 1 ? "" : "s"}`;
+  return `${years} year${years === 1 ? "" : "s"}, ${rest} month${rest === 1 ? "" : "s"}`;
+}

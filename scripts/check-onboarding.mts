@@ -7,6 +7,7 @@
  * exact failure the card exists to prevent, delivered confidently.
  */
 import { moveInProgress, type MoveInFacts } from "../src/lib/onboarding";
+import { lengthOfStay } from "../src/lib/format";
 
 let failures = 0;
 
@@ -22,6 +23,7 @@ function check(what: string, got: unknown, want: unknown) {
 }
 
 const nothing: MoveInFacts = {
+  hasEmail: false,
   hasEmergencyContact: false,
   keysIssued: null,
   depositHeldCents: 0,
@@ -34,6 +36,7 @@ const nothing: MoveInFacts = {
 };
 
 const everything: MoveInFacts = {
+  hasEmail: true,
   hasEmergencyContact: true,
   keysIssued: 2,
   depositHeldCents: 120_000,
@@ -51,11 +54,11 @@ console.log("\nNothing done");
 {
   const p = moveInProgress(nothing, LEASE);
   check("none done", p.done, 0);
-  check("nine steps", p.total, 9);
+  check("ten steps", p.total, 10);
   check("not complete", p.complete, false);
   // The first two steps in the list are optional, so neither may be "next".
-  check("next is a needed one", p.next?.key, "emergency");
-  check("six needed outstanding", p.outstanding.length, 6);
+  check("next is a needed one", p.next?.key, "email");
+  check("seven needed outstanding", p.outstanding.length, 7);
 }
 
 console.log("\nEverything done");
@@ -64,7 +67,7 @@ console.log("\nEverything done");
   check("complete", p.complete, true);
   check("nothing next", p.next, null);
   check("nothing outstanding", p.outstanding.length, 0);
-  check("all counted", p.done, 9);
+  check("all counted", p.done, 10);
 }
 
 console.log("\nOnly the optional ones left");
@@ -102,6 +105,21 @@ console.log("\nZero is not the same as nothing");
 {
   const p = moveInProgress({ ...everything, depositHeldCents: 0 }, LEASE);
   check("no deposit is not done", p.next?.key, "deposit");
+}
+
+console.log("\nHow long somebody has been here");
+{
+  // The tenancies inherited with the building are the reason this exists:
+  // "since 14 Mar 2019" is arithmetic, "7 years" is the fact.
+  check("same day", lengthOfStay("2026-11-03", "2026-11-03"), "under a month");
+  check("part of a month", lengthOfStay("2026-10-20", "2026-11-03"), "under a month");
+  check("one month exactly", lengthOfStay("2026-10-03", "2026-11-03"), "1 month");
+  check("a day short of a month", lengthOfStay("2026-10-04", "2026-11-03"), "under a month");
+  check("several months", lengthOfStay("2026-05-03", "2026-11-03"), "6 months");
+  check("a year", lengthOfStay("2025-11-03", "2026-11-03"), "1 year");
+  check("years and months", lengthOfStay("2019-03-14", "2026-11-03"), "7 years, 7 months");
+  check("exact years", lengthOfStay("2019-11-03", "2026-11-03"), "7 years");
+  check("a future start", lengthOfStay("2027-01-01", "2026-11-03"), "not yet started");
 }
 
 if (failures > 0) {

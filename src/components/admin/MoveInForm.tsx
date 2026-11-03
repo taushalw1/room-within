@@ -46,6 +46,13 @@ function Group({
  * The rent and deposit fill themselves in from the room's asking rate, so the
  * common case is a name, a date and a tick.
  */
+/** The first of next month, which is when an inherited tenancy's rent becomes hers. */
+function firstOfNextMonth() {
+  const now = new Date();
+  const next = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+  return `${next.getFullYear()}-${String(next.getMonth() + 1).padStart(2, "0")}-01`;
+}
+
 export function MoveInForm({
   units,
   waiting,
@@ -55,12 +62,18 @@ export function MoveInForm({
 }) {
   const [result, action] = useActionState(moveInRenter, null);
   const [unitId, setUnitId] = useState(units[0]?.id ?? "");
-  const [rent, setRent] = useState(
-    units[0] ? (units[0].monthly_rate_cents / 100).toFixed(2) : "",
-  );
-  const [deposit, setDeposit] = useState(
-    units[0] ? (units[0].monthly_rate_cents / 100).toFixed(2) : "",
-  );
+  // A room added before anybody set its rate has nothing to offer, and
+  // "0.00" is not nothing — it is a figure, and one that would be saved
+  // unnoticed. Blank asks the question instead.
+  const asking = (u?: { monthly_rate_cents: number }) =>
+    u && u.monthly_rate_cents > 0 ? (u.monthly_rate_cents / 100).toFixed(2) : "";
+
+  const [rent, setRent] = useState(asking(units[0]));
+  const [deposit, setDeposit] = useState(asking(units[0]));
+  // Taking a building over means most of the first tenancies are people
+  // already living here. Their tenancy began under somebody else, and
+  // every month of it so far was paid to somebody else.
+  const [alreadyHere, setAlreadyHere] = useState(false);
   const [fromWaiting, setFromWaiting] = useState("");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -73,9 +86,8 @@ export function MoveInForm({
     setUnitId(id);
     const chosen = units.find((u) => u.id === id);
     if (!chosen) return;
-    const asking = (chosen.monthly_rate_cents / 100).toFixed(2);
-    setRent(asking);
-    setDeposit(asking);
+    setRent(asking(chosen));
+    setDeposit(asking(chosen));
   }
 
   /** Somebody already on the waiting list: fill in what is known about them. */
@@ -173,14 +185,41 @@ export function MoveInForm({
           >
             {units.map((u) => (
               <option key={u.id} value={u.id}>
-                {u.name} — {money(u.monthly_rate_cents)} a month asking
+                {u.name} —{" "}
+                {u.monthly_rate_cents > 0
+                  ? `${money(u.monthly_rate_cents)} a month asking`
+                  : "no rate set yet"}
               </option>
             ))}
           </select>
         </Field>
 
+        <label className="mb-4 flex items-start gap-3 text-sm text-ink-soft">
+          <input
+            type="checkbox"
+            checked={alreadyHere}
+            onChange={(e) => setAlreadyHere(e.target.checked)}
+            className="mt-1 h-4 w-4 shrink-0 accent-[var(--color-olive)]"
+          />
+          <span>
+            They were already renting here before you took over
+            <span className="block text-xs text-ink-faint">
+              Their tenancy started under the previous owner, and the rent up
+              to now was paid to them. Tick this and you can record how long
+              they&rsquo;ve been here without billing them for any of it.
+            </span>
+          </span>
+        </label>
+
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <Field label="Starts">
+          <Field
+            label={alreadyHere ? "Renting since" : "Starts"}
+            hint={
+              alreadyHere
+                ? "When they actually moved in, even if that was years ago."
+                : undefined
+            }
+          >
             <input
               name="startDate"
               type="date"
@@ -192,14 +231,21 @@ export function MoveInForm({
           <Field label="Ends" hint="Leave blank for month to month.">
             <input name="endDate" type="date" className={inputClass} />
           </Field>
-          <Field label="Rent a month">
+          <Field
+            label="Rent a month"
+            hint={
+              unit && unit.monthly_rate_cents === 0
+                ? "No rate set for this room yet — put what they're paying, and set the room's rate in Settings when you know it."
+                : undefined
+            }
+          >
             <div className="flex items-center gap-2">
               <span className="text-ink-soft">$</span>
               <input
                 name="rent"
                 type="number"
                 step="0.01"
-                min="0"
+                min="0.01"
                 required
                 value={rent}
                 onChange={(e) => setRent(e.target.value)}
@@ -286,10 +332,37 @@ export function MoveInForm({
       </Group>
 
       <Group title="And then">
+        {/* For somebody inherited with the building, the first rent that is
+            hers is not the day their tenancy started. Billing from the start
+            date would raise an invoice years overdue for money the previous
+            owner already collected. */}
+        {alreadyHere && (
+          <Field
+            label="First rent that's yours"
+            hint="The first month you'll collect from them. Everything before this was the previous owner's."
+            className="mb-3 max-w-xs"
+          >
+            <input
+              name="firstRentOn"
+              type="date"
+              defaultValue={firstOfNextMonth()}
+              className={inputClass}
+            />
+          </Field>
+        )}
+
         <CheckField
           name="raiseFirstInvoice"
-          label="Raise their first rent invoice"
-          hint="Dated from the day the tenancy starts. Reminders then look after themselves."
+          label={
+            alreadyHere
+              ? "Raise an invoice for that first month"
+              : "Raise their first rent invoice"
+          }
+          hint={
+            alreadyHere
+              ? "Nothing before that date is billed — they already paid it to somebody else."
+              : "Dated from the day the tenancy starts. Reminders then look after themselves."
+          }
           defaultChecked
         />
         <CheckField

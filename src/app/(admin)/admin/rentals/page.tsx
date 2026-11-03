@@ -329,6 +329,7 @@ export default async function RentalsPage({
             keysIssued: null,
             depositHeldCents: 0,
             invoiceRaised: false,
+            hasEmail: false,
             inspectionStarted: false,
             inspectionSigned: false,
             hasAccount: false,

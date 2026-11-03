@@ -31,8 +31,25 @@ const schema = z.object({
   // The tenancy
   unitId: z.string().min(1, "Which room are they taking?"),
   startDate: z.string().min(1, "When does it start?"),
+  /**
+   * The first month of rent that is hers.
+   *
+   * For a new tenant this is the day the tenancy starts. For somebody
+   * already living here when she took the building over it is not: their
+   * tenancy may have begun years ago and every month of it was paid to
+   * somebody else. Billing from the start date would raise an invoice
+   * years overdue for money she is not owed.
+   */
+  firstRentOn: z.string().optional(),
   endDate: z.string().optional(),
-  rent: z.string().min(1, "How much is the rent?"),
+  // Not just "something was typed". A room added before its rate was set
+  // offers a rent of 0.00, and a tenancy saved on that default creates a
+  // tenancy and a first invoice for nothing — which looks exactly like a
+  // working tenancy until the end of the month.
+  rent: z
+    .string()
+    .min(1, "How much is the rent?")
+    .refine((value) => cents(value) > 0, "The rent can't be nothing — what are they paying?"),
   dueDay: z.coerce.number().int().min(1).max(28),
 
   // The deposit
@@ -83,6 +100,7 @@ export async function moveInRenter(
     organisation: formData.get("organisation"),
     unitId: formData.get("unitId"),
     startDate: formData.get("startDate"),
+    firstRentOn: formData.get("firstRentOn"),
     endDate: formData.get("endDate") || undefined,
     rent: formData.get("rent"),
     dueDay: formData.get("dueDay") || 1,
@@ -227,7 +245,12 @@ export async function moveInRenter(
   }
 
   if (v.raiseFirstInvoice) {
-    const start = new Date(`${v.startDate}T00:00:00`);
+    // Billed from the first month that is hers, which is the start date only
+    // for somebody genuinely new. For a tenant inherited with the building,
+    // billing from the start date would raise an invoice years overdue for
+    // rent that was paid to the previous owner.
+    const billFrom = v.firstRentOn || v.startDate;
+    const start = new Date(`${billFrom}T00:00:00`);
     const periodEnd = format(addMonths(start, 1), "yyyy-MM-dd");
 
     const { error } = await supabase.from("invoices").insert({
@@ -235,17 +258,17 @@ export async function moveInRenter(
       lease_id: leaseId,
       kind: "rent",
       description: `Rent — ${format(start, "MMMM yyyy")}`,
-      period_start: v.startDate,
+      period_start: billFrom,
       period_end: periodEnd,
       issue_date: format(new Date(), "yyyy-MM-dd"),
-      due_date: v.startDate,
+      due_date: billFrom,
       amount_cents: cents(v.rent),
       tax_cents: 0,
       status: "sent",
     });
 
     if (error) notDone.push("the first rent invoice");
-    else done.push("the first rent invoice raised");
+    else done.push(`the first rent invoice raised for ${format(start, "MMMM yyyy")}`);
   }
 
   /* --- Off the waiting list -------------------------------------------------- */
