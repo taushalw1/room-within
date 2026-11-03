@@ -737,3 +737,46 @@ export type BankLineRow = {
   decided_at: string | null;
   created_at: string;
 };
+
+export type ConditionKind = "move_in" | "move_out";
+export type ConditionStatus = "draft" | "awaiting_tenant" | "agreed" | "disputed";
+/** Kept in step with the check constraint in 0022 and with `Rating`. */
+export type ConditionRating =
+  | "good"
+  | "fair"
+  | "poor"
+  | "damaged"
+  | "missing"
+  | "na";
+
+export type ConditionReportRow = {
+  id: string;
+  lease_id: string;
+  unit_id: string | null;
+  contact_id: string | null;
+  kind: ConditionKind;
+  inspected_on: string | null;
+  tenant_present: boolean | null;
+  status: ConditionStatus;
+  landlord_note: string | null;
+  tenant_note: string | null;
+  tenant_signature_event: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type ConditionItemRow = {
+  id: string;
+  report_id: string;
+  position: number;
+  area: string;
+  item: string;
+  /** Tausha's assessment. */
+  rating: ConditionRating | null;
+  note: string | null;
+  photo_path: string | null;
+  /** The tenant's, deliberately kept apart from hers. */
+  tenant_rating: ConditionRating | null;
+  tenant_note: string | null;
+  created_at: string;
+};

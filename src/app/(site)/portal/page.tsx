@@ -27,6 +27,8 @@ import { SignaturePad } from "@/components/site/SignaturePad";
 import { signatureUrl } from "@/lib/signature-files";
 import { getMyMoveOut, getSignatureEvent } from "@/lib/data/move-out";
 import { MoveOutChecklist } from "@/components/site/MoveOutChecklist";
+import { ConditionReview } from "@/components/site/ConditionReview";
+import { getMyConditionReport } from "@/lib/data/condition";
 import { AvatarPicker } from "@/components/site/AvatarPicker";
 import { avatarUrl } from "@/lib/avatar-files";
 import { site } from "@/lib/site";
@@ -123,6 +125,7 @@ export default async function PortalPage() {
   }
   // A tenancy that is ending, if one is.
   const moveOut = await getMyMoveOut(user.contactId);
+  const inspection = await getMyConditionReport(user.contactId);
   const moveOutSignature = await getSignatureEvent(
     moveOut?.moveOut.tenant_signature_event ?? null,
   );
@@ -342,6 +345,24 @@ export default async function PortalPage() {
             <SignaturePad existing={mySignature} />
           </div>
         </Card>
+
+        {inspection && (
+          <Card className="mt-8">
+            <CardHeader
+              title={
+                inspection.report.kind === "move_in"
+                  ? "The state of the place when you moved in"
+                  : "The state of the place as you leave"
+              }
+              description="Worth going through properly. This is what decides whether anything comes off your deposit later."
+            />
+            <ConditionReview
+              report={inspection.report}
+              items={inspection.items}
+              hasSignature={Boolean(mySignature)}
+            />
+          </Card>
+        )}
 
         {moveOut && (
           <Card className="mt-8">

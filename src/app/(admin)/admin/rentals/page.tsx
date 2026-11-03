@@ -27,6 +27,8 @@ import { StartMoveOutForm } from "@/components/admin/MoveOutAdmin";
 import { WaitingList } from "@/components/admin/WaitingList";
 import { getWaitingList } from "@/lib/data/rooms";
 import { getMoveOuts } from "@/lib/data/move-out";
+import { getConditionReports } from "@/lib/data/condition";
+import { StartInspectionForm } from "@/components/admin/StartInspectionForm";
 import {
   getAllLeases,
   getContactNameMap,
@@ -68,6 +70,7 @@ export default async function RentalsPage({
     occupancy,
     moveOuts,
     waiting,
+    inspections,
   ] =
     await Promise.all([
       getInvoices(),
@@ -78,6 +81,7 @@ export default async function RentalsPage({
       getOccupancy(),
       getMoveOuts(),
       getWaitingList(),
+      getConditionReports(),
     ]);
 
   const leaving = moveOuts.filter((m) => m.status !== "settled");
@@ -307,6 +311,68 @@ export default async function RentalsPage({
           emptyUnits={units.filter(
             (u) => u.is_active && !occupancy.find((o) => o.unit.id === u.id)?.occupant,
           )}
+        />
+      </Card>
+
+      {/* ---------- Inspections ---------- */}
+      <Card>
+        <CardHeader
+          title="Inspections"
+          description="The state of a place at the start and at the end. Alberta asks for both, and without the first one the second proves very little."
+        />
+        {inspections.length > 0 && (
+          <ul className="divide-y divide-tan/20 border-b border-tan/20">
+            {inspections.map((r) => {
+              const who = r.contact_id ? contacts.get(r.contact_id)?.full_name : null;
+              const unit = units.find((u) => u.id === r.unit_id);
+              return (
+                <li key={r.id}>
+                  <Link
+                    href={`/admin/rentals/condition/${r.id}`}
+                    className="flex flex-wrap items-center justify-between gap-3 px-5 py-4 hover:bg-sage-pale/30"
+                  >
+                    <span className="min-w-0">
+                      <span className="block font-medium text-ink">
+                        {who ?? "A tenant"}
+                      </span>
+                      <span className="block text-sm text-ink-soft">
+                        {unit?.name ?? "Unit"} ·{" "}
+                        {r.kind === "move_in" ? "moving in" : "moving out"}
+                        {r.inspected_on ? ` · ${dateShort(r.inspected_on)}` : ""}
+                      </span>
+                    </span>
+                    <Badge
+                      tone={
+                        r.status === "draft"
+                          ? "neutral"
+                          : r.status === "awaiting_tenant"
+                            ? "info"
+                            : r.status === "agreed"
+                              ? "good"
+                              : "bad"
+                      }
+                    >
+                      {r.status === "draft"
+                        ? "Being filled in"
+                        : r.status === "awaiting_tenant"
+                          ? "With them"
+                          : r.status === "agreed"
+                            ? "Agreed"
+                            : "Disagreed"}
+                    </Badge>
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+        <StartInspectionForm
+          tenancies={leases.map((l) => ({
+            id: l.id,
+            label: `${units.find((u) => u.id === l.unit_id)?.name ?? "Unit"} — ${
+              contacts.get(l.contact_id)?.full_name ?? "tenant"
+            }`,
+          }))}
         />
       </Card>
 
