@@ -31,6 +31,88 @@ export const updates: UpdateEntry[] = [
   {
     date: "2026-11-03",
     kind: "new",
+    title: "Rooms 1 to 13 are in",
+    summary:
+      "All thirteen rooms are set up and ready for people. Rates are blank on purpose — you set each one.",
+    points: [
+      "Set a room's rate from the Edit button on Settings, whenever you've worked out what it's worth.",
+      "You can put somebody in a room before setting its rate — just type what they're actually paying.",
+      "Photos, square footage and what's in each room can come later. Nothing is waiting on them.",
+    ],
+    link: { href: "/admin/settings", label: "Set the rates on Settings" },
+    needsYou:
+      "There are also four older rooms on the list — Office 1, Office 2, Suite 1 and Suite 2 — left over from when the app was being built. Nobody is in them. Tell Tyler if you'd like them taken off.",
+  },
+  {
+    date: "2026-11-03",
+    kind: "new",
+    title: "Taking on the people who were already here",
+    summary:
+      "When you add somebody who was renting before you took the building over, the app now understands that — and won't bill them for the previous owner's years.",
+    points: [
+      "Tick \u201cthey were already renting here\u201d and you can put in when they actually moved in, even if that was years ago.",
+      "You then say which month is the first one that's yours. Nothing before that is invoiced — they already paid it to somebody else.",
+      "Every tenancy now shows how long they've been here, not just the date they started.",
+    ],
+    link: { href: "/admin/rentals/new", label: "Add somebody" },
+  },
+  {
+    date: "2026-11-03",
+    kind: "new",
+    title: "Bills you owe, and the driving",
+    summary:
+      "An invoice you've been sent but haven't paid now has somewhere to live — and so does every trip you make for the building.",
+    points: [
+      "Put a bill in when it arrives and your forecast knows it's coming. Mark it paid and the cost records itself, using the bill's own figures.",
+      "Set up the ones that come round again — insurance, the gas, the water — and add each one to your bills when it's due.",
+      "Record trips to Lethbridge or Taber and claim them. It's a real deduction most people never take.",
+    ],
+    link: { href: "/admin/finance/costs", label: "Bills and mileage" },
+    needsYou:
+      "Before the driving adds up to anything, put in the cents-per-kilometre rate. The CRA sets it and changes it every year — there's a link on the page.",
+  },
+  {
+    date: "2026-11-03",
+    kind: "better",
+    title: "The bank remembers how you file things",
+    summary:
+      "Tick \u201cremember this\u201d when you file an unexplained line, and anything like it gets filed the same way from then on.",
+    points: [
+      "No more categorising the same direct debit twelve times a year.",
+      "You can see every rule, and remove any of them, at the bottom of the bank page.",
+      "A rule only ever applies to money going the same way — a refund from the gas company never gets filed as another gas bill.",
+    ],
+    link: { href: "/admin/bank", label: "The bank" },
+  },
+  {
+    date: "2026-11-03",
+    kind: "new",
+    title: "Taking some off a rent, and closing a year",
+    summary:
+      "You can now forgive part of an invoice with a reason attached, and freeze a year once it's been filed so its figures stop moving.",
+    points: [
+      "\u201cTake some off\u201d sits beside \u201cmark paid\u201d on any invoice. It reduces what they owe and keeps your reason with it.",
+      "Closing a year means nothing dated before then can be added, edited or deleted — including by accident.",
+      "You can reopen it if a genuine late correction turns up. The point is that it has to be deliberate.",
+    ],
+    link: { href: "/admin/settings", label: "Settings" },
+  },
+  {
+    date: "2026-11-03",
+    kind: "new",
+    title: "Your accountant can look without you",
+    summary:
+      "You can give your accountant a sign-in that shows the figures and nothing else. They can't change anything, and they never see your tenants.",
+    points: [
+      "They see income, costs, GST and who you paid — and can download both year-end files themselves.",
+      "No tenants, no counselling, no repairs, no messages.",
+      "Turn it on or off for any person from Settings, any time.",
+    ],
+    link: { href: "/admin/settings", label: "Settings" },
+  },
+  {
+    date: "2026-11-03",
+    kind: "new",
     title: "Tick your books off against the bank",
     summary:
       "Download the statement from your bank, hand it to the app, and it matches each line against what you've already recorded. What doesn't match is the part worth knowing.",
