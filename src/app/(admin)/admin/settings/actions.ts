@@ -708,3 +708,108 @@ export async function updateDigestSettings(
       : "Saved, and the morning note is switched off.",
   };
 }
+
+/**
+ * Close the books up to a date, or reopen them.
+ *
+ * The enforcement is a database trigger on every table the year-end pack is
+ * built from, not a check here — a check in one server action protects the
+ * one route somebody remembered to put it on.
+ */
+export async function setBooksLock(
+  _prev: ActionResult | null,
+  formData: FormData,
+): Promise<ActionResult> {
+  await requireAdmin();
+  if (isDemoMode) return DEMO_RESULT;
+
+  const raw = String(formData.get("lockedBefore") ?? "").trim();
+
+  const supabase = await getServerSupabase();
+  if (!supabase) return { ok: false, message: "No connection just now." };
+
+  if (raw === "") {
+    const { error } = await supabase
+      .from("settings")
+      .delete()
+      .eq("key", "books_locked_before");
+
+    if (error) return { ok: false, message: error.message };
+
+    revalidatePath("/admin/settings");
+    return {
+      ok: true,
+      message: "Reopened. Everything can be edited again — close it back up when you're done.",
+    };
+  }
+
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(raw)) {
+    return { ok: false, message: "Choose a date, or clear it to reopen." };
+  }
+
+  const { error } = await supabase
+    .from("settings")
+    .upsert({ key: "books_locked_before", value: { date: raw } }, { onConflict: "key" });
+
+  if (error) return { ok: false, message: error.message };
+
+  revalidatePath("/admin/settings");
+  return {
+    ok: true,
+    message: `Closed. Nothing dated before ${raw} can be added or changed.`,
+  };
+}
+
+/**
+ * Give somebody read-only access to the books, or take it away.
+ *
+ * Only ever moves a profile between `accountant` and `member`. It cannot
+ * create an admin and it cannot touch an existing admin — the one account
+ * that can lock everybody out is not something a form should be able to
+ * change by accident.
+ */
+export async function setAccountantAccess(
+  formData: FormData,
+): Promise<ActionResult> {
+  await requireAdmin();
+  if (isDemoMode) return DEMO_RESULT;
+
+  const profileId = String(formData.get("profileId") ?? "");
+  const grant = formData.get("grant") === "yes";
+
+  if (!/^[0-9a-f-]{36}$/i.test(profileId)) {
+    return { ok: false, message: "That didn't come through." };
+  }
+
+  const supabase = await getServerSupabase();
+  if (!supabase) return { ok: false, message: "No connection just now." };
+
+  const { data: existing } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", profileId)
+    .maybeSingle();
+
+  const role = (existing as { role: string } | null)?.role;
+
+  if (!role) return { ok: false, message: "I can't find that person." };
+  if (role === "admin") {
+    return { ok: false, message: "That's an owner account — leave it as it is." };
+  }
+
+  const { error } = await supabase
+    .from("profiles")
+    .update({ role: grant ? "accountant" : "member" })
+    .eq("id", profileId)
+    .neq("role", "admin");
+
+  if (error) return { ok: false, message: error.message };
+
+  revalidatePath("/admin/settings");
+  return {
+    ok: true,
+    message: grant
+      ? "They can now see the books at /books. They cannot change anything."
+      : "Access removed.",
+  };
+}

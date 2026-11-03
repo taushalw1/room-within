@@ -6,7 +6,7 @@ import { requireAdmin } from "@/lib/auth";
 import { isDemoMode } from "@/lib/demo";
 import { getServerSupabase, getServiceSupabase } from "@/lib/supabase/server";
 import { sendInvoiceReminder } from "@/lib/email/send";
-import { toCents } from "@/lib/format";
+import { moneyExact, toCents } from "@/lib/format";
 import { generateRentInvoices } from "@/lib/invoices";
 
 export type ActionResult = { ok: boolean; message: string };
@@ -641,5 +641,82 @@ export async function generateRentNow(): Promise<ActionResult> {
   return {
     ok: true,
     message: `Created ${result.created} rent invoice${result.created === 1 ? "" : "s"} for ${result.periods.join(" and ")}.`,
+  };
+}
+
+const creditSchema = z.object({
+  invoiceId: z.string().uuid(),
+  amount: z.coerce.number().positive("How much are you taking off?"),
+  reason: z.string().trim().min(3, "Say briefly why — it matters later."),
+});
+
+/**
+ * Forgive part of an invoice.
+ *
+ * A month halved after a boiler failure, a goodwill reduction, a billing
+ * mistake. Until now the only options were to void the whole invoice or leave
+ * it looking unpaid for ever, and neither of those is what happened.
+ *
+ * Recorded as its own row rather than by editing the invoice, so the original
+ * amount and the reason it was reduced both survive. The reason is required:
+ * a balance that quietly dropped by three hundred dollars with no explanation
+ * is the sort of thing that looks like a mistake — or worse — when somebody
+ * reads it back a year later.
+ */
+export async function creditInvoice(
+  _prev: ActionResult | null,
+  formData: FormData,
+): Promise<ActionResult> {
+  const admin = await requireAdmin();
+  if (isDemoMode) return DEMO_RESULT;
+
+  const parsed = creditSchema.safeParse({
+    invoiceId: formData.get("invoiceId"),
+    amount: formData.get("amount"),
+    reason: formData.get("reason"),
+  });
+
+  if (!parsed.success) {
+    return { ok: false, message: parsed.error.issues[0].message };
+  }
+
+  const supabase = await getServerSupabase();
+  if (!supabase) return { ok: false, message: "No connection just now." };
+
+  const amountCents = toCents(parsed.data.amount);
+
+  // Checked against what is actually left rather than the invoice total, so
+  // two credits cannot between them take off more than was ever charged.
+  const { data: invoice } = await supabase
+    .from("invoice_balances")
+    .select("balance_cents")
+    .eq("id", parsed.data.invoiceId)
+    .maybeSingle();
+
+  const balance = (invoice as { balance_cents: number } | null)?.balance_cents;
+
+  if (balance === undefined) return { ok: false, message: "I can't find that invoice." };
+  if (amountCents > balance) {
+    return {
+      ok: false,
+      message: `That's more than the ${moneyExact(balance)} still outstanding.`,
+    };
+  }
+
+  const { error } = await supabase.from("invoice_credits").insert({
+    invoice_id: parsed.data.invoiceId,
+    amount_cents: amountCents,
+    reason: parsed.data.reason,
+    created_by: admin.id,
+  });
+
+  if (error) return { ok: false, message: error.message };
+
+  revalidatePath("/admin/rentals");
+  revalidatePath("/portal");
+
+  return {
+    ok: true,
+    message: `${moneyExact(amountCents)} taken off. The reason is kept with it.`,
   };
 }

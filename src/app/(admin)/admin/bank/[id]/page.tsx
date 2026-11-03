@@ -7,6 +7,8 @@ import { StatementCorrections } from "@/components/admin/StatementCorrections";
 import { Card, CardHeader, Table, Td, Th, EmptyRow } from "@/components/ui/Table";
 import { getBankImport, getKnownEntries } from "@/lib/data/bank";
 import { getExpenses } from "@/lib/data/admin";
+import { asRules, getBankRules } from "@/lib/data/books";
+import { ruleFor, suggestMatchText } from "@/lib/bank-rules";
 import { reconcile, type BankLine } from "@/lib/reconcile";
 import { dateShort, moneyExact } from "@/lib/format";
 
@@ -53,8 +55,14 @@ export default async function StatementPage({
   const proposal = reconcile(openLines, known);
   const byLineNo = new Map(proposal.results.map((r) => [r.bank.line, r]));
 
-  const expenses = await getExpenses();
+  const [expenses, ruleRows] = await Promise.all([getExpenses(), getBankRules()]);
   const categories = [...new Set(expenses.map((e) => e.category))].sort();
+  const rules = asRules(ruleRows);
+
+  // Worked out once per line here rather than inside each card, so the card
+  // stays a dumb renderer and the matching is done in one place.
+  const ruleForLine = (l: { description: string; amount_cents: number }) =>
+    ruleFor({ description: l.description, amountCents: l.amount_cents }, rules);
 
   const settledCount = lines.filter((l) => l.status !== "open").length;
   const everythingOpen = settledCount === 0;
@@ -107,6 +115,16 @@ export default async function StatementPage({
                 line={l}
                 proposal={byLineNo.get(l.line_no) ?? null}
                 categories={categories}
+                rule={
+                  ruleForLine(l)
+                    ? {
+                        matchText: ruleForLine(l)!.rule.matchText,
+                        category: ruleForLine(l)!.rule.category,
+                        vendor: ruleForLine(l)!.rule.vendor,
+                      }
+                    : null
+                }
+                suggestedMatch={suggestMatchText(l.description)}
               />
             ))
         )}
@@ -166,6 +184,8 @@ export default async function StatementPage({
                 line={l}
                 proposal={null}
                 categories={categories}
+                rule={null}
+                suggestedMatch=""
               />
             ))}
         </Card>

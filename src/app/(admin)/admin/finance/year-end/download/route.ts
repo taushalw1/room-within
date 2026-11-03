@@ -1,4 +1,4 @@
-import { requireAdmin } from "@/lib/auth";
+import { requireBooks } from "@/lib/auth";
 import { getYearEndInput } from "@/lib/data/year-end";
 import { buildYearEnd, summaryCsv, transactionsCsv } from "@/lib/year-end";
 
@@ -14,7 +14,9 @@ import { buildYearEnd, summaryCsv, transactionsCsv } from "@/lib/year-end";
  * sensitive thing the app can hand out in one go.
  */
 export async function GET(request: Request) {
-  await requireAdmin();
+  // The accountant downloads these too, so the gate is the books gate
+  // rather than the admin one. It still refuses everybody else.
+  await requireBooks();
 
   const url = new URL(request.url);
   const year = Number(url.searchParams.get("year"));

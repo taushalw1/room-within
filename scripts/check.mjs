@@ -65,6 +65,12 @@ if (templateCode !== 0) process.exit(templateCode);
 const movingInCode = await run("npx", ["--yes", "tsx", "scripts/check-onboarding.mts"]);
 if (movingInCode !== 0) process.exit(movingInCode);
 
+// Bank rules and repeating dates. A rule that fires on the wrong direction
+// files a refund as a cost; a date that drifts at a month end loses a payment
+// over a year, and the only symptom is a total that is slightly off.
+const booksCode = await run("npx", ["--yes", "tsx", "scripts/check-books.mts"]);
+if (booksCode !== 0) process.exit(booksCode);
+
 const buildCode = await run("npx", ["next", "build"], {
   NEXT_DIST_DIR: ".next-check",
 });

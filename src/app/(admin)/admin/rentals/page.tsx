@@ -9,6 +9,7 @@ import { InvoiceForm } from "@/components/admin/InvoiceForm";
 import { AddTenantForm } from "@/components/admin/AddTenantForm";
 import { Stat } from "@/components/admin/Stat";
 import {
+  CreditInvoiceForm,
   RecordPaymentForm,
   SendReminderButton,
 } from "@/components/admin/InvoiceActions";
@@ -579,6 +580,11 @@ export default async function RentalsPage({
                     </Td>
                     <Td align="right">
                       <Badge tone={stateTone[i.state]}>{i.state}</Badge>
+                      {i.credited_cents > 0 && (
+                        <span className="mt-0.5 block text-xs text-ink-faint">
+                          {moneyExact(i.credited_cents)} taken off
+                        </span>
+                      )}
                     </Td>
                     <Td align="right">
                       {i.balance_cents > 0 && (
@@ -589,6 +595,10 @@ export default async function RentalsPage({
                           <RecordPaymentForm
                             invoiceId={i.id}
                             contactId={i.contact_id}
+                            balanceCents={i.balance_cents}
+                          />
+                          <CreditInvoiceForm
+                            invoiceId={i.id}
                             balanceCents={i.balance_cents}
                           />
                         </div>

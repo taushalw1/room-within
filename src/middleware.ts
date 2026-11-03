@@ -42,6 +42,7 @@ export async function middleware(request: NextRequest) {
   const path = request.nextUrl.pathname;
   const isPrivate =
     path.startsWith("/admin") ||
+    path.startsWith("/books") ||
     path.startsWith("/portal") ||
     path.startsWith("/my-bookings");
 

@@ -14,14 +14,17 @@ import {
   Th,
 } from "@/components/ui/Table";
 import { getBankImports, getOpenBankLines } from "@/lib/data/bank";
+import { getBankRules } from "@/lib/data/books";
+import { BankRules } from "@/components/admin/BankRules";
 import { dateShort, moneyExact } from "@/lib/format";
 
 export const metadata = { title: "The bank · Room Within" };
 
 export default async function BankPage() {
-  const [statements, open] = await Promise.all([
+  const [statements, open, rules] = await Promise.all([
     getBankImports(),
     getOpenBankLines(),
+    getBankRules(),
   ]);
 
   const openByImport = new Map<string, number>();
@@ -127,6 +130,15 @@ export default async function BankPage() {
             )}
           </tbody>
         </Table>
+      </Card>
+
+      <Card>
+        <CardHeader
+          title="Things you always file the same way"
+          description="So you don't categorise the same direct debit twelve times a year."
+          tone="plain"
+        />
+        <BankRules rules={rules} />
       </Card>
 
       <p className="text-xs leading-relaxed text-ink-faint">

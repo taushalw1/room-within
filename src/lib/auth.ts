@@ -71,3 +71,22 @@ export async function requireUser(next = "/portal"): Promise<CurrentUser> {
   if (!user) redirect(`/login?next=${encodeURIComponent(next)}`);
   return user;
 }
+
+/**
+ * Gate for the accountant's area.
+ *
+ * Deliberately not used anywhere under `/admin`. The rule that everything
+ * there needs `requireAdmin` is worth more than the small duplication of a
+ * second area: a gate that sometimes lets a second role through is a gate
+ * somebody will forget to tighten on the one page that mattered.
+ *
+ * An accountant gets read-only pages here and read-only policies in the
+ * database. Neither alone would be enough — the policies are what stop a
+ * crafted request, and the missing pages are what stop an honest mistake.
+ */
+export async function requireBooks(): Promise<CurrentUser> {
+  const user = await getCurrentUser();
+  if (!user) redirect("/login?next=/books");
+  if (user.role !== "admin" && user.role !== "accountant") redirect("/?denied=1");
+  return user;
+}

@@ -5,7 +5,8 @@
  * will then point at every place in the app that needs adjusting.
  */
 
-export type Role = "admin" | "tenant" | "member";
+/** `accountant` is read-only, and sees the money but not the people. */
+export type Role = "admin" | "tenant" | "member" | "accountant";
 
 export type ProfileRow = {
   id: string;
@@ -121,6 +122,8 @@ export type InvoiceRow = {
   notes: string | null;
   /* From the view */
   paid_cents: number;
+  /** Rent forgiven, or a billing mistake put right. Reduces the balance. */
+  credited_cents: number;
   balance_cents: number;
   state: InvoiceState;
   days_overdue: number;
@@ -804,4 +807,76 @@ export type MessageSentRow = {
   failure: string | null;
   sent_by: string | null;
   sent_at: string;
+};
+
+/* --- The money tools from 0024 -------------------------------------------- */
+
+export type BankRuleRow = {
+  id: string;
+  match_text: string;
+  direction: "in" | "out";
+  category: string | null;
+  vendor: string | null;
+  times_used: number;
+  created_at: string;
+  updated_at: string;
+};
+
+export type BillStatus = "open" | "paid" | "void";
+
+export type BillRow = {
+  id: string;
+  vendor: string;
+  description: string | null;
+  category: string;
+  amount_cents: number;
+  tax_cents: number;
+  issued_on: string | null;
+  due_on: string;
+  status: BillStatus;
+  /** The cost it became once paid. */
+  expense_id: string | null;
+  unit_id: string | null;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type Cadence = "monthly" | "quarterly" | "yearly";
+
+export type RecurringCostRow = {
+  id: string;
+  vendor: string;
+  category: string;
+  amount_cents: number;
+  cadence: Cadence;
+  next_due: string;
+  is_active: boolean;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type TripRow = {
+  id: string;
+  travelled_on: string;
+  purpose: string;
+  from_place: string | null;
+  to_place: string | null;
+  kilometres: number;
+  /** Stored per trip: the CRA rate changes every year. */
+  rate_cents_per_km: number;
+  /** Worked out by the database, so it can't disagree with its own rows. */
+  amount_cents: number;
+  notes: string | null;
+  created_at: string;
+};
+
+export type InvoiceCreditRow = {
+  id: string;
+  invoice_id: string;
+  amount_cents: number;
+  reason: string;
+  created_by: string | null;
+  created_at: string;
 };

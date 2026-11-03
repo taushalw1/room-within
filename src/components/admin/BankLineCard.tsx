@@ -7,6 +7,7 @@ import {
   CircleHelp,
   CornerUpLeft,
   Plus,
+  Wand2,
   X,
 } from "lucide-react";
 import {
@@ -37,11 +38,17 @@ export function BankLineCard({
   line,
   proposal,
   categories,
+  rule,
+  suggestedMatch,
 }: {
   line: BankLineRow;
   /** Null for a line already decided. */
   proposal: LineResult | null;
   categories: string[];
+  /** A saved rule that already knows how to file this, if there is one. */
+  rule: { matchText: string; category: string | null; vendor: string | null } | null;
+  /** What a new rule would match on, offered when there isn't one yet. */
+  suggestedMatch: string;
 }) {
   const [result, setResult] = useState<ActionResult | null>(null);
   const [pending, start] = useTransition();
@@ -79,6 +86,13 @@ export function BankLineCard({
           </p>
           {line.note && (
             <p className="mt-1.5 text-xs italic text-ink-soft">{line.note}</p>
+          )}
+          {!decided && rule && (
+            <p className="mt-1.5 flex items-center gap-1.5 text-xs text-olive-deep">
+              <Wand2 className="h-3.5 w-3.5" aria-hidden />
+              You file these as <strong>{rule.category ?? "—"}</strong> —
+              it&rsquo;s already filled in below.
+            </p>
           )}
         </div>
 
@@ -286,6 +300,7 @@ export function BankLineCard({
               fd({
                 category: String(form.get("category") ?? ""),
                 vendor: String(form.get("vendor") ?? ""),
+                rememberAs: String(form.get("rememberAs") ?? ""),
               }),
             );
           }}
@@ -300,6 +315,7 @@ export function BankLineCard({
               <input
                 name="category"
                 required
+                defaultValue={rule?.category ?? ""}
                 list="bank-expense-categories"
                 placeholder="Utilities"
                 className={`${inputClass} mt-1.5`}
@@ -309,7 +325,7 @@ export function BankLineCard({
               <span className="eyebrow !text-[0.6rem] text-bark">Who it went to</span>
               <input
                 name="vendor"
-                defaultValue={tidyVendor(line.description)}
+                defaultValue={rule?.vendor ?? tidyVendor(line.description)}
                 className={`${inputClass} mt-1.5`}
               />
             </label>
@@ -319,6 +335,25 @@ export function BankLineCard({
               <option key={c} value={c} />
             ))}
           </datalist>
+          {/* Offered only when nothing already files this, and only when there
+              is something sensible to match on. A rule she didn't ask for is
+              a rule she will not remember writing. */}
+          {!rule && suggestedMatch.length >= 3 && (
+            <label className="flex items-start gap-2 text-xs text-ink-soft">
+              <input
+                type="checkbox"
+                name="rememberAs"
+                value={suggestedMatch}
+                className="mt-0.5 h-3.5 w-3.5 shrink-0 accent-[var(--color-olive)]"
+              />
+              <span>
+                Remember this — file anything with{" "}
+                <strong className="text-bark">{suggestedMatch}</strong> in it the
+                same way from now on.
+              </span>
+            </label>
+          )}
+
           <div className="flex gap-2">
             <Button size="sm" type="submit" disabled={pending}>
               Record it

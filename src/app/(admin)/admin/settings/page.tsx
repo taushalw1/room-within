@@ -19,6 +19,8 @@ import { ResearchSettingsForm } from "@/components/admin/ResearchSettingsForm";
 import { getRooms } from "@/lib/data/public";
 import { getRates, getUnits } from "@/lib/data/admin";
 import { getCurrentUser } from "@/lib/auth";
+import { getLockDate, getPeopleWithLogins } from "@/lib/data/books";
+import { BooksAccess } from "@/components/admin/BooksAccess";
 import { money } from "@/lib/format";
 import { site } from "@/lib/site";
 
@@ -33,6 +35,8 @@ export default async function SettingsPage() {
     researchSettings,
     lateFees,
     digest,
+    lockedBefore,
+    people,
   ] = await Promise.all([
     getRooms(),
     getUnits(),
@@ -43,6 +47,8 @@ export default async function SettingsPage() {
     getResearchSettings(),
     getLateFeeSettings(),
     getDigestSettings(),
+    getLockDate(),
+    getPeopleWithLogins(),
   ]);
 
   return (
@@ -201,6 +207,14 @@ export default async function SettingsPage() {
         <div className="px-5 py-5">
           <TestEmailButtons address={user?.email ?? null} />
         </div>
+      </Card>
+
+      <Card>
+        <CardHeader
+          title="Closing a year, and your accountant"
+          description="Freeze a year once it has been filed, and let your accountant look at the figures without being able to change them."
+        />
+        <BooksAccess lockedBefore={lockedBefore} people={people} />
       </Card>
 
       <Card className="bg-parchment/70">

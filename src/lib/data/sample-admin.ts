@@ -72,11 +72,15 @@ export const sampleLeases: LeaseRow[] = [
 
 /** Helper that fills in the computed columns the `invoice_balances` view adds. */
 function inv(
-  base: Omit<InvoiceRow, "paid_cents" | "balance_cents" | "state" | "days_overdue">,
+  base: Omit<
+    InvoiceRow,
+    "paid_cents" | "credited_cents" | "balance_cents" | "state" | "days_overdue"
+  >,
   paidCents: number,
+  creditedCents = 0,
 ): InvoiceRow {
   const total = base.amount_cents + base.tax_cents;
-  const balance = total - paidCents;
+  const balance = total - paidCents - creditedCents;
   const daysOverdue = Math.floor(
     (Date.now() - new Date(base.due_date).getTime()) / 86_400_000,
   );
@@ -90,7 +94,14 @@ function inv(
           : daysOverdue > 0
             ? "overdue"
             : "outstanding";
-  return { ...base, paid_cents: paidCents, balance_cents: balance, state, days_overdue: daysOverdue };
+  return {
+    ...base,
+    paid_cents: paidCents,
+    credited_cents: creditedCents,
+    balance_cents: balance,
+    state,
+    days_overdue: daysOverdue,
+  };
 }
 
 export const sampleInvoices: InvoiceRow[] = [

@@ -220,6 +220,8 @@ const addExpenseSchema = z.object({
   lineId: z.string().uuid(),
   category: z.string().trim().min(1, "Give it a category."),
   vendor: z.string().trim().max(120).optional(),
+  /** Text to remember this by, when she asks for it to be remembered. */
+  rememberAs: z.string().trim().max(120).optional(),
 });
 
 /**
@@ -237,6 +239,7 @@ export async function addLineAsExpense(formData: FormData): Promise<ActionResult
     lineId: formData.get("lineId"),
     category: formData.get("category"),
     vendor: formData.get("vendor"),
+    rememberAs: formData.get("rememberAs"),
   });
 
   if (!parsed.success) {
@@ -316,9 +319,30 @@ export async function addLineAsExpense(formData: FormData): Promise<ActionResult
     };
   }
 
+  // The rule is written last and its failure is not allowed to undo the cost.
+  // She asked for a cost to be recorded; remembering how to file the next one
+  // is a convenience on top, and losing the cost because the convenience
+  // failed would be a poor trade.
+  let remembered = "";
+  if (parsed.data.rememberAs && parsed.data.rememberAs.length >= 3) {
+    const { error: ruleError } = await supabase.from("bank_rules").upsert(
+      {
+        match_text: parsed.data.rememberAs,
+        direction: "out",
+        category: parsed.data.category,
+        vendor: parsed.data.vendor || null,
+      },
+      { onConflict: "match_text,direction" },
+    );
+
+    remembered = ruleError
+      ? " (I couldn't save the rule, though.)"
+      : ` I'll file anything with "${parsed.data.rememberAs}" in it the same way.`;
+  }
+
   revalidatePath("/admin/bank");
   revalidatePath("/admin/finance");
-  return { ok: true, message: "Recorded as a cost." };
+  return { ok: true, message: `Recorded as a cost.${remembered}` };
 }
 
 /** Put a decided line back to undecided. */
@@ -512,4 +536,77 @@ export async function deleteStatement(formData: FormData): Promise<ActionResult>
     ok: true,
     message: "Statement removed. Anything you recorded from it is still there.",
   };
+}
+
+/* -------------------------------------------------------------------------- */
+/*  Rules                                                                     */
+/* -------------------------------------------------------------------------- */
+
+const ruleSchema = z.object({
+  matchText: z.string().trim().min(3, "Give it at least three characters to look for."),
+  direction: z.enum(["in", "out"]),
+  category: z.string().trim().max(120).optional(),
+  vendor: z.string().trim().max(120).optional(),
+});
+
+/**
+ * Remember how to file something.
+ *
+ * The direction is stored with the rule and never inferred later. A rule
+ * written while looking at a payment out must not one day fire on a refund
+ * coming in — that would file the refund as another cost, and the books would
+ * show the money leaving twice and never coming back.
+ */
+export async function saveBankRule(formData: FormData): Promise<ActionResult> {
+  await requireAdmin();
+  if (isDemoMode) return DEMO;
+
+  const parsed = ruleSchema.safeParse({
+    matchText: formData.get("matchText"),
+    direction: formData.get("direction"),
+    category: formData.get("category"),
+    vendor: formData.get("vendor"),
+  });
+
+  if (!parsed.success) {
+    return { ok: false, message: parsed.error.issues[0].message };
+  }
+
+  const supabase = await getServerSupabase();
+  if (!supabase) return { ok: false, message: "No connection just now." };
+
+  const { error } = await supabase.from("bank_rules").upsert(
+    {
+      match_text: parsed.data.matchText,
+      direction: parsed.data.direction,
+      category: parsed.data.category || null,
+      vendor: parsed.data.vendor || null,
+    },
+    { onConflict: "match_text,direction" },
+  );
+
+  if (error) return { ok: false, message: error.message };
+
+  revalidatePath("/admin/bank");
+  return {
+    ok: true,
+    message: `Noted. Anything with "${parsed.data.matchText}" in it will be filed this way.`,
+  };
+}
+
+export async function deleteBankRule(formData: FormData): Promise<ActionResult> {
+  await requireAdmin();
+  if (isDemoMode) return DEMO;
+
+  const id = z.string().uuid().safeParse(formData.get("id"));
+  if (!id.success) return { ok: false, message: "That didn't come through." };
+
+  const supabase = await getServerSupabase();
+  if (!supabase) return { ok: false, message: "No connection just now." };
+
+  const { error } = await supabase.from("bank_rules").delete().eq("id", id.data);
+  if (error) return { ok: false, message: error.message };
+
+  revalidatePath("/admin/bank");
+  return { ok: true, message: "Rule removed." };
 }

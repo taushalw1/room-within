@@ -10,6 +10,7 @@ import { CashForecast } from "@/components/admin/CashForecast";
 import { getForecast } from "@/lib/data/forecast";
 import { getCashSettings } from "@/lib/data/settings";
 import { getRoomYears } from "@/lib/data/rooms";
+import { billSummary, getBills } from "@/lib/data/books";
 import { Stat } from "@/components/admin/Stat";
 import {
   Badge,
@@ -55,10 +56,11 @@ export default async function FinancePage() {
   const yearFrom = `${thisYear}-01-01`;
   const yearTo = `${thisYear}-12-31`;
 
-  const [rooms, forecast, cash] = await Promise.all([
+  const [rooms, forecast, cash, bills] = await Promise.all([
     getRoomYears(yearFrom, yearTo),
     getForecast(),
     getCashSettings(),
+    getBills(),
   ]);
 
   const [
@@ -157,6 +159,8 @@ export default async function FinancePage() {
   const yearStart = new Date(new Date().getFullYear(), 0, 1);
 
   // Anyone paid more than $500 in a calendar year needs a T4A by February.
+  const owing = billSummary(bills);
+
   const t4a = instructors
     .map((instructor) => {
       const paid = statements
@@ -244,6 +248,45 @@ export default async function FinancePage() {
           icon={HandHeart}
         />
       </div>
+
+      {/* What she owes. Above the forecast on purpose: an overdue bill is a
+          thing to do today, and the forecast is a thing to think about. */}
+      <Card>
+        <CardHeader
+          title="Bills to pay"
+          description={
+            owing.open.length === 0
+              ? "Nothing outstanding."
+              : `${owing.open.length} waiting${owing.lateCents > 0 ? `, ${moneyExact(owing.lateCents)} of it overdue` : ""}.`
+          }
+          tone={owing.lateCents > 0 ? "warn" : "default"}
+          action={
+            <ButtonLink href="/admin/finance/costs" size="sm" variant="secondary">
+              Bills and mileage
+            </ButtonLink>
+          }
+        />
+        {owing.open.length > 0 && (
+          <ul className="divide-y divide-tan/20">
+            {owing.open.slice(0, 4).map((b) => (
+              <li
+                key={b.id}
+                className="flex flex-wrap items-center justify-between gap-3 px-5 py-3"
+              >
+                <span className="min-w-0">
+                  <span className="block text-sm text-ink">{b.vendor}</span>
+                  <span className="block text-xs text-ink-faint">
+                    due {dateShort(b.due_on)}
+                  </span>
+                </span>
+                <span className="font-display font-semibold text-ink">
+                  {moneyExact(b.amount_cents + b.tax_cents)}
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </Card>
 
       <Card>
         <CardHeader
