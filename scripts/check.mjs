@@ -53,6 +53,12 @@ if (reconcileCode !== 0) process.exit(reconcileCode);
 const yearEndCode = await run("npx", ["--yes", "tsx", "scripts/check-year-end.mts"]);
 if (yearEndCode !== 0) process.exit(yearEndCode);
 
+// Filling the blanks in a saved message. The failure mode is an email that
+// reaches a real tenant saying "Hi {{first_name}}", which shows up nowhere
+// except in their inbox.
+const templateCode = await run("npx", ["--yes", "tsx", "scripts/check-templates.mts"]);
+if (templateCode !== 0) process.exit(templateCode);
+
 const buildCode = await run("npx", ["next", "build"], {
   NEXT_DIST_DIR: ".next-check",
 });

@@ -780,3 +780,28 @@ export type ConditionItemRow = {
   tenant_note: string | null;
   created_at: string;
 };
+
+export type MessageTemplateRow = {
+  id: string;
+  name: string;
+  subject: string;
+  body: string;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+};
+
+export type MessageSentRow = {
+  id: string;
+  contact_id: string | null;
+  to_email: string;
+  to_name: string | null;
+  template_id: string | null;
+  /** The wording as it actually went out, not the template. */
+  subject: string;
+  body: string;
+  delivered: boolean;
+  failure: string | null;
+  sent_by: string | null;
+  sent_at: string;
+};

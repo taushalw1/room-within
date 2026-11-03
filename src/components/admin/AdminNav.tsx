@@ -26,6 +26,7 @@ import {
   Hammer,
   History,
   Sparkles,
+  Mail,
 } from "lucide-react";
 import { LogoLockup } from "@/components/brand/Logo";
 import { cn } from "@/lib/cn";
@@ -47,6 +48,7 @@ const links = [
   { href: "/admin/conferences", label: "Conferences", icon: Plane },
   { href: "/admin/counselling", label: "Counselling", icon: NotebookPen },
   { href: "/admin/contacts", label: "People", icon: Users },
+  { href: "/admin/messages", label: "Messages", icon: Mail },
   { href: "/admin/history", label: "Record of changes", icon: History },
   { href: "/admin/settings", label: "Settings", icon: Settings },
   { href: "/admin/whats-new", label: "What's new", icon: Sparkles, badge: true },

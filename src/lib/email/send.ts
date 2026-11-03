@@ -742,3 +742,38 @@ export async function sendMorningDigest(opts: {
     text: opts.text,
   });
 }
+
+/**
+ * One of her own saved messages, to a tenant.
+ *
+ * Goes through the same branded shell as everything else the app sends, so a
+ * tenant sees one consistent sender rather than a plain-text email that looks
+ * like it came from somewhere else. The reply-to is her address: a tenant
+ * hitting reply should reach a person.
+ */
+export async function sendTenantMessage(opts: {
+  to: string;
+  subject: string;
+  /** Plain text, as she typed it. Newlines are kept. */
+  body: string;
+  heading: string;
+}): Promise<SendResult> {
+  const paragraphs = opts.body
+    .split(/\n{2,}/)
+    .map(
+      (p) =>
+        `<tr><td style="padding:0 40px 16px;font-family:Georgia,'Times New Roman',serif;font-size:15px;line-height:1.65;color:#3a372f;">${p
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/\n/g, "<br>")}</td></tr>`,
+    )
+    .join("");
+
+  return send({
+    to: opts.to,
+    subject: opts.subject,
+    html: shell(opts.heading, paragraphs, { preview: opts.body.slice(0, 120) }),
+    text: opts.body,
+  });
+}
