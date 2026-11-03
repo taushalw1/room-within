@@ -698,3 +698,42 @@ export type WaitingListRow = {
   created_at: string;
   updated_at: string;
 };
+
+/** One statement she has read in. */
+export type BankImportRow = {
+  id: string;
+  filename: string | null;
+  period_start: string | null;
+  period_end: string | null;
+  line_count: number;
+  money_in_cents: number;
+  money_out_cents: number;
+  /** What was assumed when the file was read. See `bank-csv.ts`. */
+  reading: {
+    dateOrder: "day-first" | "month-first" | "year-first";
+    dateWasAmbiguous: boolean;
+    amounts: "signed" | "debit-and-credit" | "all-one-way";
+    columns: { date: string; description: string; amount: string };
+  } | null;
+  imported_by: string | null;
+  imported_at: string;
+};
+
+export type BankLineStatus = "open" | "matched" | "added" | "ignored";
+
+export type BankLineRow = {
+  id: string;
+  import_id: string;
+  line_no: number;
+  occurred_on: string;
+  description: string;
+  /** Positive into the account, negative out. */
+  amount_cents: number;
+  status: BankLineStatus;
+  payment_id: string | null;
+  expense_id: string | null;
+  note: string | null;
+  decided_by: string | null;
+  decided_at: string | null;
+  created_at: string;
+};

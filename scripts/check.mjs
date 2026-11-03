@@ -41,6 +41,12 @@ if (swCode !== 0) process.exit(swCode);
 const forecastCode = await run("npx", ["--yes", "tsx", "scripts/check-forecast.mts"]);
 if (forecastCode !== 0) process.exit(forecastCode);
 
+// Reading a bank file and matching it. Every failure mode here produces a
+// result that looks right — a shifted date column, a flipped sign, a confident
+// wrong match — so it is checked against answers worked out by hand.
+const reconcileCode = await run("npx", ["--yes", "tsx", "scripts/check-reconcile.mts"]);
+if (reconcileCode !== 0) process.exit(reconcileCode);
+
 const buildCode = await run("npx", ["next", "build"], {
   NEXT_DIST_DIR: ".next-check",
 });
