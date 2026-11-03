@@ -29,6 +29,78 @@ export type UpdateEntry = {
 
 export const updates: UpdateEntry[] = [
   {
+    date: "2026-11-03",
+    kind: "new",
+    title: "Tick your books off against the bank",
+    summary:
+      "Download the statement from your bank, hand it to the app, and it matches each line against what you've already recorded. What doesn't match is the part worth knowing.",
+    points: [
+      "It reads whatever shape your bank exports — it works out which column is the date and which is the amount by itself.",
+      "An amount has to match to the penny before it offers you a tick. Where nothing matches exactly it shows you what's close and by how much, which is usually a bank fee.",
+      "Nothing is changed on your books until you say so, and anything you decide can be undone.",
+      "A line that's nothing — a bank charge, money moved between your own accounts — can be set aside with a note saying why.",
+      "At the end it lists anything on your books the statement never mentioned. A cheque that hasn't cleared is normal. A rent payment that never arrived is not.",
+    ],
+    link: { href: "/admin/bank", label: "The bank" },
+  },
+  {
+    date: "2026-11-03",
+    kind: "new",
+    title: "Write down the state of a place, at both ends",
+    summary:
+      "A move-in and a move-out inspection for each tenancy, signed by the tenant from their own account — and the two shown side by side so you can see exactly what changed.",
+    points: [
+      "Alberta asks for both. Without the move-in one it's very hard to show later that damage wasn't already there.",
+      "One tap per item on your phone while you're standing in the room, with a note or a photo wherever it isn't simply fine.",
+      "Their view is recorded beside yours, never over it. Where you disagreed, the report says so — and that's worth more than a report that quietly kept whichever answer was typed last.",
+      "The comparison hides everything that came back the same, so the three things that changed don't get lost among the twenty that didn't.",
+    ],
+    link: { href: "/admin/rentals", label: "Start one from Rentals" },
+    needsYou:
+      "Tyler needs to run one database update before this will work on the live site — it's the only thing today that isn't ready to go.",
+  },
+  {
+    date: "2026-11-03",
+    kind: "new",
+    title: "Hand your accountant a year in two files",
+    summary:
+      "Pick a year and get a summary and a list of every transaction in it, both ready to email.",
+    points: [
+      "Income by where it came from, costs by category, GST both ways, and who you paid enough to need a T4A.",
+      "The figures are on a cash basis — money that actually arrived and actually left. The page says so, because the other way of counting gives different numbers.",
+      "Both files open in Excel, Numbers or Google Sheets.",
+      "It leaves out depreciation and anything else needing a judgement call about what things are worth. That's your accountant's job, and a guess here would look like a tax figure without being one.",
+    ],
+    link: { href: "/admin/finance/year-end", label: "Year end" },
+  },
+  {
+    date: "2026-11-03",
+    kind: "new",
+    title: "Write the rent-is-late email once",
+    summary:
+      "The four or five emails you write over and over, saved and ready. Pick one, pick a person, and the blanks fill themselves in.",
+    points: [
+      "Four are there to start with: rent overdue, lease renewal, a repair being done, and a welcome.",
+      "You see exactly what they'll get before anything is sent, and it won't let you send one with a blank still in it.",
+      "It keeps a record of what you sent and when — so you can tell whether you've already chased someone without going through your own inbox.",
+      "Edit a saved message any time. What you've already sent stays exactly as it was sent.",
+    ],
+    link: { href: "/admin/messages", label: "Messages" },
+  },
+  {
+    date: "2026-11-03",
+    kind: "new",
+    title: "See what's still undone for someone moving in",
+    summary:
+      "Nine things want doing when a tenancy starts. The Rentals page now shows which are done and names the next one.",
+    points: [
+      "It works this out from your own records rather than from boxes you tick, so it can't go out of date.",
+      "Only tenancies with something outstanding appear, with the furthest behind at the top.",
+      "The things the law cares about — the emergency contact, the key count, the deposit, the inspection — always come before the optional ones.",
+    ],
+    link: { href: "/admin/rentals", label: "Rentals" },
+  },
+  {
     date: "2026-11-02",
     kind: "new",
     title: "Photograph a receipt instead of typing it",
