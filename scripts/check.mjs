@@ -59,6 +59,12 @@ if (yearEndCode !== 0) process.exit(yearEndCode);
 const templateCode = await run("npx", ["--yes", "tsx", "scripts/check-templates.mts"]);
 if (templateCode !== 0) process.exit(templateCode);
 
+// Move-in progress. The rule worth protecting is that a step the law cares
+// about outranks a nice-to-have — invert it and the page confidently suggests
+// the wrong next thing.
+const movingInCode = await run("npx", ["--yes", "tsx", "scripts/check-onboarding.mts"]);
+if (movingInCode !== 0) process.exit(movingInCode);
+
 const buildCode = await run("npx", ["next", "build"], {
   NEXT_DIST_DIR: ".next-check",
 });

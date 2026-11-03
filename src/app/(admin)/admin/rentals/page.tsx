@@ -28,6 +28,8 @@ import { WaitingList } from "@/components/admin/WaitingList";
 import { getWaitingList } from "@/lib/data/rooms";
 import { getMoveOuts } from "@/lib/data/move-out";
 import { getConditionReports } from "@/lib/data/condition";
+import { getMoveInFacts } from "@/lib/data/onboarding";
+import { MovingIn } from "@/components/admin/MovingIn";
 import { StartInspectionForm } from "@/components/admin/StartInspectionForm";
 import {
   getAllLeases,
@@ -87,6 +89,7 @@ export default async function RentalsPage({
   const leaving = moveOuts.filter((m) => m.status !== "settled");
 
   const leases = allLeases.filter((l) => l.status === "active");
+  const moveInFacts = await getMoveInFacts(leases);
   const endedLeases = allLeases.filter((l) => l.status === "ended");
   const unitsById = new Map(units.map((u) => [u.id, u]));
 
@@ -313,6 +316,26 @@ export default async function RentalsPage({
           )}
         />
       </Card>
+
+      {/* ---------- Settling in ---------- */}
+      <MovingIn
+        tenancies={leases.map((l) => ({
+          leaseId: l.id,
+          who: contacts.get(l.contact_id)?.full_name ?? "A tenant",
+          unit: units.find((u) => u.id === l.unit_id)?.name ?? "Unit",
+          facts: moveInFacts.get(l.id) ?? {
+            hasEmergencyContact: false,
+            keysIssued: null,
+            depositHeldCents: 0,
+            invoiceRaised: false,
+            inspectionStarted: false,
+            inspectionSigned: false,
+            hasAccount: false,
+            hasSignature: false,
+            welcomed: false,
+          },
+        }))}
+      />
 
       {/* ---------- Inspections ---------- */}
       <Card>
