@@ -1,5 +1,4 @@
-import Link from "next/link";
-import { ArrowLeft, Car, Receipt, Repeat } from "lucide-react";
+import { Car, Receipt, Repeat } from "lucide-react";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { BillsPanel } from "@/components/admin/BillsPanel";
 import { RepeatingCosts } from "@/components/admin/RepeatingCosts";
@@ -41,14 +40,6 @@ export default async function CostsPage() {
         title="Bills and mileage"
         description="What you owe but haven't paid, what comes round again, and the driving."
       />
-
-      <Link
-        href="/admin/finance"
-        className="inline-flex items-center gap-1.5 text-sm text-bark underline underline-offset-2"
-      >
-        <ArrowLeft className="h-3.5 w-3.5" aria-hidden />
-        Finance
-      </Link>
 
       <div className="grid gap-4 sm:grid-cols-3">
         <Stat

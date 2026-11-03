@@ -71,6 +71,12 @@ if (movingInCode !== 0) process.exit(movingInCode);
 const booksCode = await run("npx", ["--yes", "tsx", "scripts/check-books.mts"]);
 if (booksCode !== 0) process.exit(booksCode);
 
+// Which menu entry lights up. Wrong is quiet and constantly irritating, and
+// the tidy-up into sections could silently drop a page off the menu
+// altogether.
+const navCode = await run("npx", ["--yes", "tsx", "scripts/check-nav.mts"]);
+if (navCode !== 0) process.exit(navCode);
+
 const buildCode = await run("npx", ["next", "build"], {
   NEXT_DIST_DIR: ".next-check",
 });

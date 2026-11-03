@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { AdminNav } from "@/components/admin/AdminNav";
+import { AdminNav, SectionTabs } from "@/components/admin/AdminNav";
 import { requireAdmin } from "@/lib/auth";
 import { isDemoMode } from "@/lib/demo";
 
@@ -21,6 +21,10 @@ export default async function AdminLayout({
       <AdminNav />
 
       <div className="min-w-0 flex-1">
+        {/* The pages inside whichever section you're in. Above the demo
+            notice because it belongs to the page, not to the environment. */}
+        <SectionTabs />
+
         {isDemoMode && (
           <p className="border-b border-tan/30 bg-[#F6E9CF] px-6 py-2.5 text-center text-xs text-bark">
             Demo mode — no database connected, so these are sample figures.

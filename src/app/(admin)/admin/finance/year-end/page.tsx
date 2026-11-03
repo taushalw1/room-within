@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowLeft, Download, Info } from "lucide-react";
+import { Download, Info } from "lucide-react";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { YearEndFigures } from "@/components/admin/YearEndFigures";
 import { ButtonLink } from "@/components/ui/Button";
@@ -39,14 +39,7 @@ export default async function YearEndPage({
         description="Everything an accountant will ask for, in one place and in two files."
       />
 
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <Link
-          href="/admin/finance"
-          className="inline-flex items-center gap-1.5 text-sm text-bark underline underline-offset-2"
-        >
-          <ArrowLeft className="h-3.5 w-3.5" aria-hidden />
-          Finance
-        </Link>
+      <div className="flex flex-wrap items-center justify-end gap-3">
         <nav className="flex flex-wrap gap-1.5">
           {years.slice(0, 6).map((y) => (
             <Link

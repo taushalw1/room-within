@@ -30,6 +30,19 @@ export type UpdateEntry = {
 export const updates: UpdateEntry[] = [
   {
     date: "2026-11-03",
+    kind: "better",
+    title: "A shorter menu",
+    summary:
+      "The menu had grown to twenty things and you had to scroll sideways to find any of them. It's eight now, grouped by what they're for.",
+    points: [
+      "Renting holds tenancies, moving somebody in, repairs and the building.",
+      "Money holds the overview, bills and mileage, the bank and year end.",
+      "People holds everyone, messages and counselling. Plans holds the plan, grants and conferences.",
+      "Nothing was taken away — once you're in a section, its pages appear in a row underneath.",
+    ],
+  },
+  {
+    date: "2026-11-03",
     kind: "new",
     title: "Rooms 1 to 13 are in",
     summary:
