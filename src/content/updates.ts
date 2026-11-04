@@ -51,10 +51,9 @@ export const updates: UpdateEntry[] = [
       "Set a room's rate from the Edit button on Settings, whenever you've worked out what it's worth.",
       "You can put somebody in a room before setting its rate — just type what they're actually paying.",
       "Photos, square footage and what's in each room can come later. Nothing is waiting on them.",
+      "The four old rooms from when the app was being built — Office 1, Office 2, Suite 1 and Suite 2 — have been taken off. Nobody was in them.",
     ],
     link: { href: "/admin/settings", label: "Set the rates on Settings" },
-    needsYou:
-      "There are also four older rooms on the list — Office 1, Office 2, Suite 1 and Suite 2 — left over from when the app was being built. Nobody is in them. Tell Tyler if you'd like them taken off.",
   },
   {
     date: "2026-11-03",
@@ -274,7 +273,8 @@ export const updates: UpdateEntry[] = [
       "A repair nobody has acknowledged for a week is flagged, because that's how a tenant decides not to bother reporting the next one.",
       "Jobs that are late and warranties about to run out appear in it too.",
     ],
-    needsYou: "It's already on. Settings → 'Your morning note' if you'd rather it stopped.",
+    needsYou:
+      "It's already on. Settings → 'Your morning note' if you'd rather it stopped.",
   },
   {
     date: "2026-11-02",
@@ -294,8 +294,7 @@ export const updates: UpdateEntry[] = [
     date: "2026-11-02",
     kind: "new",
     title: "Statements, rooms that pay, and a waiting list",
-    summary:
-      "Three smaller things on the money side.",
+    summary: "Three smaller things on the money side.",
     points: [
       "A statement of account for anyone — everything charged and paid, in order, with a running balance, as a PDF you can attach to an email. Tenants can get their own.",
       "Each room's year: what came in, what was spent on it, and how many days it stood empty with what those days cost.",
